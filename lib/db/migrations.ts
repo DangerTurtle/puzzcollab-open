@@ -137,6 +137,7 @@ const migrations: Record<string, Migration> = {
         .addColumn("puzzleUri", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("text", "text", (col) => col.notNull())
+        .addColumn("revisedBody", "text")
         .addColumn("revisedCluesJson", "text")
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())

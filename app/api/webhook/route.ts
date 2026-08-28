@@ -218,6 +218,7 @@ export async function POST(request: NextRequest) {
           puzzleUri: record.puzzle.uri,
           authorDid: record.authorDid,
           text: record.text,
+          revisedBody: record.revisedBody ?? null,
           revisedCluesJson: record.revisedClues ? serializeClues(record.revisedClues) : null,
           createdAt: record.createdAt,
           indexedAt,

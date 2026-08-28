@@ -126,6 +126,7 @@ export interface ErratumTable {
   puzzleUri: string;
   authorDid: string;
   text: string;
+  revisedBody: string | null;
   revisedCluesJson: string | null;
   createdAt: string;
   indexedAt: string;
