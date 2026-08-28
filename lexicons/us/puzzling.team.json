@@ -20,7 +20,7 @@
             "maxGraphemes": 300,
             "maxLength": 3000
           },
-          "createdBy": {
+          "creatorDid": {
             "type": "string",
             "format": "did",
             "description": "The member whose action first created this team, for attribution. Not an access-control fact -- team continuity never depends on this member."

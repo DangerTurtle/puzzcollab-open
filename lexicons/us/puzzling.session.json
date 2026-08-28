@@ -18,7 +18,7 @@
             "type": "ref",
             "ref": "com.atproto.repo.strongRef"
           },
-          "createdBy": {
+          "creatorDid": {
             "type": "string",
             "format": "did",
             "description": "The member who started this session."

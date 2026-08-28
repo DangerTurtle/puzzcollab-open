@@ -8,7 +8,7 @@
       "description": "A shareable link, minted by a team member for a specific session. Redeeming it always grants session access, and conditionally grants team membership per joinPolicy.",
       "record": {
         "type": "object",
-        "required": ["session", "joinPolicy", "createdBy", "createdAt"],
+        "required": ["session", "joinPolicy", "creatorDid", "createdAt"],
         "properties": {
           "session": {
             "type": "ref",
@@ -19,7 +19,7 @@
             "knownValues": ["open", "membersOnly"],
             "description": "'open': redeeming this invite grants team membership. 'membersOnly': redeeming grants session access only, and requires the redeemer to already be a team member."
           },
-          "createdBy": {
+          "creatorDid": {
             "type": "string",
             "format": "did",
             "description": "The member who minted this invite."

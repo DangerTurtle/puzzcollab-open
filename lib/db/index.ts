@@ -21,7 +21,13 @@ export interface DatabaseSchema {
   auth_state: AuthStateTable;
   auth_session: AuthSessionTable;
   account: AccountTable;
-  status: StatusTable;
+  team: TeamTable;
+  member: MemberTable;
+  invite: InviteTable;
+  session: SessionTable;
+  attempt: AttemptTable;
+  comment: CommentTable;
+  puzzle: PuzzleTable;
 }
 
 interface AuthStateTable {
@@ -40,11 +46,74 @@ export interface AccountTable {
   active: 0 | 1;
 }
 
-export interface StatusTable {
+export interface TeamTable {
   uri: string;
-  authorDid: string;
-  status: string;
+  cid: string;
+  name: string;
+  description: string | null;
+  creatorDid: string | null;
   createdAt: string;
   indexedAt: string;
-  current: 0 | 1;
+}
+
+export interface MemberTable {
+  uri: string;
+  cid: string;
+  teamUri: string;
+  memberDid: string;
+  addedAt: string;
+  invitedByUri: string | null;
+  indexedAt: string;
+}
+
+export interface InviteTable {
+  uri: string;
+  cid: string;
+  sessionUri: string;
+  joinPolicy: string;
+  creatorDid: string;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface SessionTable {
+  uri: string;
+  cid: string;
+  teamUri: string;
+  puzzleUri: string;
+  creatorDid: string | null;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface AttemptTable {
+  uri: string;
+  cid: string;
+  authorDid: string;
+  sessionUri: string;
+  clueId: string;
+  text: string;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface CommentTable {
+  uri: string;
+  cid: string;
+  authorDid: string;
+  sessionUri: string;
+  clueId: string | null;
+  text: string;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface PuzzleTable {
+  uri: string;
+  cid: string;
+  authorDid: string;
+  title: string;
+  cluesJson: string;
+  createdAt: string;
+  indexedAt: string;
 }

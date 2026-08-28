@@ -9,8 +9,13 @@ services:
     environment:
       # Reaches the Next.js dev server running on the host from inside the container.
       TAP_WEBHOOK_URL: ${TAP_WEBHOOK_URL:-http://host.docker.internal:3000/api/webhook}
-      # Auto-discovers any account with a record in this collection, so accounts
-      # don't need to be registered manually via /repos/add. Per Tap's docs, the
-      # same collection should be set as both the signal collection and the filter.
-      TAP_SIGNAL_COLLECTION: xyz.statusphere.status
-      TAP_COLLECTION_FILTERS: xyz.statusphere.status
+      # No TAP_SIGNAL_COLLECTION: we deliberately don't auto-discover every
+      # account that ever writes a us.puzzling.* record anywhere on the
+      # network. Repos are registered explicitly via /repos/add (see
+      # lib/tap/registerRepos) at the moment a DID becomes relevant to us --
+      # joining a team -- so Tap only ever tracks real puzzling.us members.
+      # Filtering still applies to whichever repos ARE tracked, so we don't
+      # get flooded with e.g. app.bsky.feed.post from the same accounts.
+      TAP_COLLECTION_FILTERS: us.puzzling.*
+      # Must be set in a local .env, not committed here -- see env.template.
+      TAP_ADMIN_PASSWORD: ${TAP_ADMIN_PASSWORD}
