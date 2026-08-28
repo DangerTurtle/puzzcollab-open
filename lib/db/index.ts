@@ -51,7 +51,7 @@ export interface TeamTable {
   cid: string;
   name: string;
   description: string | null;
-  createdBy: string | null;
+  creatorDid: string | null;
   createdAt: string;
   indexedAt: string;
 }
@@ -59,19 +59,19 @@ export interface TeamTable {
 export interface MemberTable {
   uri: string;
   cid: string;
-  team: string;
+  teamUri: string;
   memberDid: string;
   addedAt: string;
-  invitedBy: string | null;
+  invitedByUri: string | null;
   indexedAt: string;
 }
 
 export interface InviteTable {
   uri: string;
   cid: string;
-  session: string;
+  sessionUri: string;
   joinPolicy: string;
-  createdBy: string;
+  creatorDid: string;
   createdAt: string;
   indexedAt: string;
 }
@@ -79,9 +79,9 @@ export interface InviteTable {
 export interface SessionTable {
   uri: string;
   cid: string;
-  team: string;
-  puzzle: string;
-  createdBy: string | null;
+  teamUri: string;
+  puzzleUri: string;
+  creatorDid: string | null;
   createdAt: string;
   indexedAt: string;
 }
@@ -90,7 +90,7 @@ export interface AttemptTable {
   uri: string;
   cid: string;
   authorDid: string;
-  session: string;
+  sessionUri: string;
   clueId: string;
   text: string;
   createdAt: string;
@@ -101,7 +101,7 @@ export interface CommentTable {
   uri: string;
   cid: string;
   authorDid: string;
-  session: string;
+  sessionUri: string;
   clueId: string | null;
   text: string;
   createdAt: string;
@@ -111,8 +111,9 @@ export interface CommentTable {
 export interface PuzzleTable {
   uri: string;
   cid: string;
+  authorDid: string;
   title: string;
-  clues: string;
+  cluesJson: string;
   createdAt: string;
   indexedAt: string;
 }

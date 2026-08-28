@@ -8,13 +8,13 @@
       "description": "A roster entry granting someone membership on a team.",
       "record": {
         "type": "object",
-        "required": ["team", "member", "addedAt"],
+        "required": ["team", "memberDid", "addedAt"],
         "properties": {
           "team": {
             "type": "ref",
             "ref": "com.atproto.repo.strongRef"
           },
-          "member": {
+          "memberDid": {
             "type": "string",
             "format": "did"
           },

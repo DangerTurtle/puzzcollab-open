@@ -31,7 +31,7 @@ const migrations: Record<string, Migration> = {
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("name", "text", (col) => col.notNull())
         .addColumn("description", "text")
-        .addColumn("createdBy", "text")
+        .addColumn("creatorDid", "text")
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
@@ -40,16 +40,16 @@ const migrations: Record<string, Migration> = {
         .createTable("member")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("team", "text", (col) => col.notNull())
+        .addColumn("teamUri", "text", (col) => col.notNull())
         .addColumn("memberDid", "text", (col) => col.notNull())
         .addColumn("addedAt", "text", (col) => col.notNull())
-        .addColumn("invitedBy", "text")
+        .addColumn("invitedByUri", "text")
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
       await db.schema
         .createIndex("member_team_idx")
         .on("member")
-        .columns(["team", "memberDid"])
+        .columns(["teamUri", "memberDid"])
         .execute();
       await db.schema
         .createIndex("member_memberDid_idx")
@@ -61,9 +61,9 @@ const migrations: Record<string, Migration> = {
         .createTable("invite")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("session", "text", (col) => col.notNull())
+        .addColumn("sessionUri", "text", (col) => col.notNull())
         .addColumn("joinPolicy", "text", (col) => col.notNull())
-        .addColumn("createdBy", "text", (col) => col.notNull())
+        .addColumn("creatorDid", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
@@ -72,16 +72,16 @@ const migrations: Record<string, Migration> = {
         .createTable("session")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("team", "text", (col) => col.notNull())
-        .addColumn("puzzle", "text", (col) => col.notNull())
-        .addColumn("createdBy", "text")
+        .addColumn("teamUri", "text", (col) => col.notNull())
+        .addColumn("puzzleUri", "text", (col) => col.notNull())
+        .addColumn("creatorDid", "text")
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
       await db.schema
         .createIndex("session_team_idx")
         .on("session")
-        .column("team")
+        .column("teamUri")
         .execute();
 
       await db.schema
@@ -89,7 +89,7 @@ const migrations: Record<string, Migration> = {
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("session", "text", (col) => col.notNull())
+        .addColumn("sessionUri", "text", (col) => col.notNull())
         .addColumn("clueId", "text", (col) => col.notNull())
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
@@ -98,7 +98,7 @@ const migrations: Record<string, Migration> = {
       await db.schema
         .createIndex("attempt_session_clue_idx")
         .on("attempt")
-        .columns(["session", "clueId"])
+        .columns(["sessionUri", "clueId"])
         .execute();
 
       await db.schema
@@ -106,7 +106,7 @@ const migrations: Record<string, Migration> = {
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("session", "text", (col) => col.notNull())
+        .addColumn("sessionUri", "text", (col) => col.notNull())
         .addColumn("clueId", "text")
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
@@ -115,15 +115,16 @@ const migrations: Record<string, Migration> = {
       await db.schema
         .createIndex("comment_session_clue_idx")
         .on("comment")
-        .columns(["session", "clueId"])
+        .columns(["sessionUri", "clueId"])
         .execute();
 
       await db.schema
         .createTable("puzzle")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
+        .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("title", "text", (col) => col.notNull())
-        .addColumn("clues", "text", (col) => col.notNull())
+        .addColumn("cluesJson", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();

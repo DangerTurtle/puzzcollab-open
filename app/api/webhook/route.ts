@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
           cid,
           name: record.name,
           description: record.description ?? null,
-          createdBy: record.createdBy ?? null,
+          creatorDid: record.creatorDid ?? null,
           createdAt: record.createdAt,
           indexedAt,
         });
@@ -115,10 +115,10 @@ export async function POST(request: NextRequest) {
         await upsertMember({
           uri,
           cid,
-          team: record.team.uri,
-          memberDid: record.member,
+          teamUri: record.team.uri,
+          memberDid: record.memberDid,
           addedAt: record.addedAt,
-          invitedBy: record.invitedBy?.uri ?? null,
+          invitedByUri: record.invitedBy?.uri ?? null,
           indexedAt,
         });
         break;
@@ -128,9 +128,9 @@ export async function POST(request: NextRequest) {
         await upsertInvite({
           uri,
           cid,
-          session: record.session.uri,
+          sessionUri: record.session.uri,
           joinPolicy: record.joinPolicy,
-          createdBy: record.createdBy,
+          creatorDid: record.creatorDid,
           createdAt: record.createdAt,
           indexedAt,
         });
@@ -141,9 +141,9 @@ export async function POST(request: NextRequest) {
         await upsertSession({
           uri,
           cid,
-          team: record.team.uri,
-          puzzle: record.puzzle.uri,
-          createdBy: record.createdBy ?? null,
+          teamUri: record.team.uri,
+          puzzleUri: record.puzzle.uri,
+          creatorDid: record.creatorDid ?? null,
           createdAt: record.createdAt,
           indexedAt,
         });
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
           uri,
           cid,
           authorDid: evt.did,
-          session: record.session.uri,
+          sessionUri: record.session.uri,
           clueId: record.clueId,
           text: record.text,
           createdAt: record.createdAt,
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
           uri,
           cid,
           authorDid: evt.did,
-          session: record.session.uri,
+          sessionUri: record.session.uri,
           clueId: record.clueId ?? null,
           text: record.text,
           createdAt: record.createdAt,
@@ -182,8 +182,9 @@ export async function POST(request: NextRequest) {
         await upsertPuzzle({
           uri,
           cid,
+          authorDid: evt.did,
           title: record.title,
-          clues: JSON.stringify(
+          cluesJson: JSON.stringify(
             record.clues.map((clue) => ({
               id: clue.id,
               name: clue.name,
