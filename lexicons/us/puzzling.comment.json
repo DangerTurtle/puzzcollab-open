@@ -5,19 +5,19 @@
     "main": {
       "type": "record",
       "key": "tid",
-      "description": "A chat message, optionally attached to a specific clue.",
+      "description": "A chat message about a puzzle, optionally attached to a specific clue. Scoped to the author and the puzzle; team/roster membership is a client-side filtering concern, not a protocol-level access grant over comments.",
       "record": {
         "type": "object",
-        "required": ["session", "text", "createdAt"],
+        "required": ["puzzle", "text", "createdAt"],
         "properties": {
-          "session": {
+          "puzzle": {
             "type": "ref",
             "ref": "com.atproto.repo.strongRef"
           },
           "clueId": {
             "type": "string",
             "maxLength": 200,
-            "description": "The opaque id of the clue this comment is attached to, within the session's puzzle. Absent for general team chat."
+            "description": "The opaque id of the clue this comment is attached to, within the puzzle. Absent for general chat about the puzzle."
           },
           "text": {
             "type": "string",

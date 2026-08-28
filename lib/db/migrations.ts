@@ -61,7 +61,7 @@ const migrations: Record<string, Migration> = {
         .createTable("invite")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("sessionUri", "text", (col) => col.notNull())
+        .addColumn("teamUri", "text", (col) => col.notNull())
         .addColumn("joinPolicy", "text", (col) => col.notNull())
         .addColumn("creatorDid", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
@@ -69,36 +69,20 @@ const migrations: Record<string, Migration> = {
         .execute();
 
       await db.schema
-        .createTable("session")
-        .addColumn("uri", "text", (col) => col.primaryKey())
-        .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("teamUri", "text", (col) => col.notNull())
-        .addColumn("puzzleUri", "text", (col) => col.notNull())
-        .addColumn("creatorDid", "text")
-        .addColumn("createdAt", "text", (col) => col.notNull())
-        .addColumn("indexedAt", "text", (col) => col.notNull())
-        .execute();
-      await db.schema
-        .createIndex("session_team_idx")
-        .on("session")
-        .column("teamUri")
-        .execute();
-
-      await db.schema
         .createTable("attempt")
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("sessionUri", "text", (col) => col.notNull())
+        .addColumn("puzzleUri", "text", (col) => col.notNull())
         .addColumn("clueId", "text", (col) => col.notNull())
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
       await db.schema
-        .createIndex("attempt_session_clue_idx")
+        .createIndex("attempt_puzzle_clue_idx")
         .on("attempt")
-        .columns(["sessionUri", "clueId"])
+        .columns(["puzzleUri", "clueId"])
         .execute();
 
       await db.schema
@@ -106,16 +90,16 @@ const migrations: Record<string, Migration> = {
         .addColumn("uri", "text", (col) => col.primaryKey())
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("sessionUri", "text", (col) => col.notNull())
+        .addColumn("puzzleUri", "text", (col) => col.notNull())
         .addColumn("clueId", "text")
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
       await db.schema
-        .createIndex("comment_session_clue_idx")
+        .createIndex("comment_puzzle_clue_idx")
         .on("comment")
-        .columns(["sessionUri", "clueId"])
+        .columns(["puzzleUri", "clueId"])
         .execute();
 
       await db.schema
@@ -153,7 +137,6 @@ const migrations: Record<string, Migration> = {
       await db.schema.dropTable("puzzle").execute();
       await db.schema.dropTable("comment").execute();
       await db.schema.dropTable("attempt").execute();
-      await db.schema.dropTable("session").execute();
       await db.schema.dropTable("invite").execute();
       await db.schema.dropTable("member").execute();
       await db.schema.dropTable("team").execute();

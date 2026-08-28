@@ -11,8 +11,6 @@ import {
   deleteMember,
   upsertInvite,
   deleteInvite,
-  upsertSession,
-  deleteSession,
   upsertAttempt,
   deleteAttempt,
   upsertComment,
@@ -90,9 +88,6 @@ export async function POST(request: NextRequest) {
       case us.puzzling.invite.$nsid:
         await deleteInvite(uri);
         break;
-      case us.puzzling.session.$nsid:
-        await deleteSession(uri);
-        break;
       case us.puzzling.attempt.$nsid:
         await deleteAttempt(uri);
         break;
@@ -147,22 +142,9 @@ export async function POST(request: NextRequest) {
         await upsertInvite({
           uri,
           cid,
-          sessionUri: record.session.uri,
+          teamUri: record.team.uri,
           joinPolicy: record.joinPolicy,
           creatorDid: record.creatorDid,
-          createdAt: record.createdAt,
-          indexedAt,
-        });
-        break;
-      }
-      case us.puzzling.session.$nsid: {
-        const record = us.puzzling.session.$parse(evt.record);
-        await upsertSession({
-          uri,
-          cid,
-          teamUri: record.team.uri,
-          puzzleUri: record.puzzle.uri,
-          creatorDid: record.creatorDid ?? null,
           createdAt: record.createdAt,
           indexedAt,
         });
@@ -174,7 +156,7 @@ export async function POST(request: NextRequest) {
           uri,
           cid,
           authorDid: evt.did,
-          sessionUri: record.session.uri,
+          puzzleUri: record.puzzle.uri,
           clueId: record.clueId,
           text: record.text,
           createdAt: record.createdAt,
@@ -188,7 +170,7 @@ export async function POST(request: NextRequest) {
           uri,
           cid,
           authorDid: evt.did,
-          sessionUri: record.session.uri,
+          puzzleUri: record.puzzle.uri,
           clueId: record.clueId ?? null,
           text: record.text,
           createdAt: record.createdAt,
