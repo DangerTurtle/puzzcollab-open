@@ -1,4 +1,14 @@
-import { getDb, AccountTable } from ".";
+import {
+  getDb,
+  AccountTable,
+  TeamTable,
+  MemberTable,
+  InviteTable,
+  SessionTable,
+  AttemptTable,
+  CommentTable,
+  PuzzleTable,
+} from ".";
 import { getHandle } from "@atproto/common-web";
 import { getTap } from "@/lib/tap";
 
@@ -40,4 +50,95 @@ export async function deleteAccount(did: string) {
   // here yet -- what should happen to a member's history when their identity
   // goes away is a real product question, not a safe default to pick silently.
   // Revisit once the webhook's identity-event handling is built (step 3+).
+}
+
+// The webhook calls these on every create/update/delete event Tap delivers.
+// Each upsert matches Tap's own semantics: "create" and "update" are handled
+// identically (last write wins on uri), since the network doesn't guarantee
+// we see a clean create-then-update sequence -- backfill and live events can
+// interleave. No table declares foreign keys (see migrations.ts) since Tap
+// can deliver, say, an attempt before the session it references.
+
+export async function upsertTeam(data: TeamTable) {
+  await getDb()
+    .insertInto("team")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteTeam(uri: string) {
+  await getDb().deleteFrom("team").where("uri", "=", uri).execute();
+}
+
+export async function upsertMember(data: MemberTable) {
+  await getDb()
+    .insertInto("member")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteMember(uri: string) {
+  await getDb().deleteFrom("member").where("uri", "=", uri).execute();
+}
+
+export async function upsertInvite(data: InviteTable) {
+  await getDb()
+    .insertInto("invite")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteInvite(uri: string) {
+  await getDb().deleteFrom("invite").where("uri", "=", uri).execute();
+}
+
+export async function upsertSession(data: SessionTable) {
+  await getDb()
+    .insertInto("session")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteSession(uri: string) {
+  await getDb().deleteFrom("session").where("uri", "=", uri).execute();
+}
+
+export async function upsertAttempt(data: AttemptTable) {
+  await getDb()
+    .insertInto("attempt")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteAttempt(uri: string) {
+  await getDb().deleteFrom("attempt").where("uri", "=", uri).execute();
+}
+
+export async function upsertComment(data: CommentTable) {
+  await getDb()
+    .insertInto("comment")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteComment(uri: string) {
+  await getDb().deleteFrom("comment").where("uri", "=", uri).execute();
+}
+
+export async function upsertPuzzle(data: PuzzleTable) {
+  await getDb()
+    .insertInto("puzzle")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deletePuzzle(uri: string) {
+  await getDb().deleteFrom("puzzle").where("uri", "=", uri).execute();
 }
