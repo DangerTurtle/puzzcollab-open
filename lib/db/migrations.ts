@@ -124,12 +124,31 @@ const migrations: Record<string, Migration> = {
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("title", "text", (col) => col.notNull())
+        .addColumn("body", "text", (col) => col.notNull())
         .addColumn("cluesJson", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
+
+      await db.schema
+        .createTable("erratum")
+        .addColumn("uri", "text", (col) => col.primaryKey())
+        .addColumn("cid", "text", (col) => col.notNull())
+        .addColumn("puzzleUri", "text", (col) => col.notNull())
+        .addColumn("authorDid", "text", (col) => col.notNull())
+        .addColumn("text", "text", (col) => col.notNull())
+        .addColumn("revisedCluesJson", "text")
+        .addColumn("createdAt", "text", (col) => col.notNull())
+        .addColumn("indexedAt", "text", (col) => col.notNull())
+        .execute();
+      await db.schema
+        .createIndex("erratum_puzzle_idx")
+        .on("erratum")
+        .column("puzzleUri")
+        .execute();
     },
     async down(db: Kysely<unknown>) {
+      await db.schema.dropTable("erratum").execute();
       await db.schema.dropTable("puzzle").execute();
       await db.schema.dropTable("comment").execute();
       await db.schema.dropTable("attempt").execute();

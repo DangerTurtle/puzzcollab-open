@@ -8,6 +8,7 @@ import {
   AttemptTable,
   CommentTable,
   PuzzleTable,
+  ErratumTable,
 } from ".";
 import { getHandle } from "@atproto/common-web";
 import { getTap } from "@/lib/tap";
@@ -141,4 +142,16 @@ export async function upsertPuzzle(data: PuzzleTable) {
 
 export async function deletePuzzle(uri: string) {
   await getDb().deleteFrom("puzzle").where("uri", "=", uri).execute();
+}
+
+export async function upsertErratum(data: ErratumTable) {
+  await getDb()
+    .insertInto("erratum")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteErratum(uri: string) {
+  await getDb().deleteFrom("erratum").where("uri", "=", uri).execute();
 }

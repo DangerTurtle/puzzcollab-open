@@ -19,10 +19,26 @@ import {
   deleteComment,
   upsertPuzzle,
   deletePuzzle,
+  upsertErratum,
+  deleteErratum,
 } from "@/lib/db/queries";
 import * as us from "@/lib/lexicons/us";
 
 const TAP_ADMIN_PASSWORD = process.env.TAP_ADMIN_PASSWORD;
+
+// Shared by puzzle.clues and erratum.revisedClues -- both are arrays of the
+// same us.puzzling.puzzle#clue shape, and both need answerBlock flattened to
+// base64 to fit in a text column.
+function serializeClues(clues: readonly { id: string; name: string; prompt: string; answerBlock: Uint8Array }[]): string {
+  return JSON.stringify(
+    clues.map((clue) => ({
+      id: clue.id,
+      name: clue.name,
+      prompt: clue.prompt,
+      answerBlock: Buffer.from(clue.answerBlock).toString("base64"),
+    })),
+  );
+}
 
 export async function POST(request: NextRequest) {
   // Verify request is from our TAP server
@@ -85,6 +101,9 @@ export async function POST(request: NextRequest) {
         break;
       case us.puzzling.puzzle.$nsid:
         await deletePuzzle(uri);
+        break;
+      case us.puzzling.erratum.$nsid:
+        await deleteErratum(uri);
         break;
     }
     return NextResponse.json({ success: true });
@@ -184,14 +203,22 @@ export async function POST(request: NextRequest) {
           cid,
           authorDid: evt.did,
           title: record.title,
-          cluesJson: JSON.stringify(
-            record.clues.map((clue) => ({
-              id: clue.id,
-              name: clue.name,
-              prompt: clue.prompt,
-              answerBlock: Buffer.from(clue.answerBlock).toString("base64"),
-            })),
-          ),
+          body: record.body,
+          cluesJson: serializeClues(record.clues),
+          createdAt: record.createdAt,
+          indexedAt,
+        });
+        break;
+      }
+      case us.puzzling.erratum.$nsid: {
+        const record = us.puzzling.erratum.$parse(evt.record);
+        await upsertErratum({
+          uri,
+          cid,
+          puzzleUri: record.puzzle.uri,
+          authorDid: record.authorDid,
+          text: record.text,
+          revisedCluesJson: record.revisedClues ? serializeClues(record.revisedClues) : null,
           createdAt: record.createdAt,
           indexedAt,
         });

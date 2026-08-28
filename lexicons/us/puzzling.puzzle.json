@@ -8,12 +8,18 @@
       "description": "A puzzle published by a host, with one or more clues to solve.",
       "record": {
         "type": "object",
-        "required": ["title", "clues", "createdAt"],
+        "required": ["title", "body", "clues", "createdAt"],
         "properties": {
           "title": {
             "type": "string",
             "maxGraphemes": 200,
             "maxLength": 2000
+          },
+          "body": {
+            "type": "string",
+            "maxGraphemes": 10000,
+            "maxLength": 100000,
+            "description": "The puzzle itself, as presented to solvers -- distinct from the per-clue answer-checking data in clues. Not encrypted."
           },
           "clues": {
             "type": "array",

@@ -28,6 +28,7 @@ export interface DatabaseSchema {
   attempt: AttemptTable;
   comment: CommentTable;
   puzzle: PuzzleTable;
+  erratum: ErratumTable;
 }
 
 interface AuthStateTable {
@@ -113,7 +114,19 @@ export interface PuzzleTable {
   cid: string;
   authorDid: string;
   title: string;
+  body: string;
   cluesJson: string;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface ErratumTable {
+  uri: string;
+  cid: string;
+  puzzleUri: string;
+  authorDid: string;
+  text: string;
+  revisedCluesJson: string | null;
   createdAt: string;
   indexedAt: string;
 }
