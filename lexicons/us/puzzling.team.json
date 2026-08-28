@@ -1,0 +1,36 @@
+{
+  "lexicon": 1,
+  "id": "us.puzzling.team",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A persistent group of people who collaborate on puzzles together. Lives in puzzling.us's own account -- a team is not its own atproto identity.",
+      "record": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxGraphemes": 100,
+            "maxLength": 300
+          },
+          "description": {
+            "type": "string",
+            "maxGraphemes": 300,
+            "maxLength": 3000
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "did",
+            "description": "The member whose action first created this team, for attribution. Not an access-control fact -- team continuity never depends on this member."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

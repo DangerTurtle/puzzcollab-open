@@ -1,0 +1,35 @@
+{
+  "lexicon": 1,
+  "id": "us.puzzling.invite",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A shareable link, minted by a team member for a specific session. Redeeming it always grants session access, and conditionally grants team membership per joinPolicy.",
+      "record": {
+        "type": "object",
+        "required": ["session", "joinPolicy", "createdBy", "createdAt"],
+        "properties": {
+          "session": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef"
+          },
+          "joinPolicy": {
+            "type": "string",
+            "knownValues": ["open", "membersOnly"],
+            "description": "'open': redeeming this invite grants team membership. 'membersOnly': redeeming grants session access only, and requires the redeemer to already be a team member."
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "did",
+            "description": "The member who minted this invite."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
