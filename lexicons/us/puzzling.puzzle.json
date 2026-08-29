@@ -31,6 +31,11 @@
           "createdAt": {
             "type": "string",
             "format": "datetime"
+          },
+          "publishAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When the puzzle becomes visible to solvers. Optional -- if absent, the puzzle is visible as soon as it's indexed. Distinct from createdAt: a puzzle can be authored well ahead of its scheduled release."
           }
         }
       }

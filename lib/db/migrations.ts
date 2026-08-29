@@ -111,6 +111,7 @@ const migrations: Record<string, Migration> = {
         .addColumn("body", "text", (col) => col.notNull())
         .addColumn("cluesJson", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
+        .addColumn("publishAt", "text")
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
 

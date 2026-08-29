@@ -106,6 +106,7 @@ export interface PuzzleTable {
   body: string;
   cluesJson: string;
   createdAt: string;
+  publishAt: string | null;
   indexedAt: string;
 }
 
