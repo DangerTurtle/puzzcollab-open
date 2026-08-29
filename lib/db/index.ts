@@ -24,10 +24,10 @@ export interface DatabaseSchema {
   team: TeamTable;
   member: MemberTable;
   invite: InviteTable;
-  session: SessionTable;
   attempt: AttemptTable;
   comment: CommentTable;
   puzzle: PuzzleTable;
+  erratum: ErratumTable;
 }
 
 interface AuthStateTable {
@@ -69,19 +69,9 @@ export interface MemberTable {
 export interface InviteTable {
   uri: string;
   cid: string;
-  sessionUri: string;
+  teamUri: string;
   joinPolicy: string;
   creatorDid: string;
-  createdAt: string;
-  indexedAt: string;
-}
-
-export interface SessionTable {
-  uri: string;
-  cid: string;
-  teamUri: string;
-  puzzleUri: string;
-  creatorDid: string | null;
   createdAt: string;
   indexedAt: string;
 }
@@ -90,7 +80,7 @@ export interface AttemptTable {
   uri: string;
   cid: string;
   authorDid: string;
-  sessionUri: string;
+  puzzleUri: string;
   clueId: string;
   text: string;
   createdAt: string;
@@ -101,7 +91,7 @@ export interface CommentTable {
   uri: string;
   cid: string;
   authorDid: string;
-  sessionUri: string;
+  puzzleUri: string;
   clueId: string | null;
   text: string;
   createdAt: string;
@@ -113,7 +103,20 @@ export interface PuzzleTable {
   cid: string;
   authorDid: string;
   title: string;
+  body: string;
   cluesJson: string;
+  createdAt: string;
+  indexedAt: string;
+}
+
+export interface ErratumTable {
+  uri: string;
+  cid: string;
+  puzzleUri: string;
+  authorDid: string;
+  text: string;
+  revisedBody: string | null;
+  revisedCluesJson: string | null;
   createdAt: string;
   indexedAt: string;
 }

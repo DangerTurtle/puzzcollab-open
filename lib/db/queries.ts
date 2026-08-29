@@ -4,10 +4,10 @@ import {
   TeamTable,
   MemberTable,
   InviteTable,
-  SessionTable,
   AttemptTable,
   CommentTable,
   PuzzleTable,
+  ErratumTable,
 } from ".";
 import { getHandle } from "@atproto/common-web";
 import { getTap } from "@/lib/tap";
@@ -46,7 +46,7 @@ export async function upsertAccount(data: AccountTable) {
 
 export async function deleteAccount(did: string) {
   await getDb().deleteFrom("account").where("did", "=", did).execute();
-  // Deliberately not cascading into team/member/invite/session/attempt/comment
+  // Deliberately not cascading into team/member/invite/attempt/comment
   // here yet -- what should happen to a member's history when their identity
   // goes away is a real product question, not a safe default to pick silently.
   // Revisit once the webhook's identity-event handling is built (step 3+).
@@ -57,7 +57,7 @@ export async function deleteAccount(did: string) {
 // identically (last write wins on uri), since the network doesn't guarantee
 // we see a clean create-then-update sequence -- backfill and live events can
 // interleave. No table declares foreign keys (see migrations.ts) since Tap
-// can deliver, say, an attempt before the session it references.
+// can deliver, say, an attempt before the puzzle it references.
 
 export async function upsertTeam(data: TeamTable) {
   await getDb()
@@ -95,18 +95,6 @@ export async function deleteInvite(uri: string) {
   await getDb().deleteFrom("invite").where("uri", "=", uri).execute();
 }
 
-export async function upsertSession(data: SessionTable) {
-  await getDb()
-    .insertInto("session")
-    .values(data)
-    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
-    .execute();
-}
-
-export async function deleteSession(uri: string) {
-  await getDb().deleteFrom("session").where("uri", "=", uri).execute();
-}
-
 export async function upsertAttempt(data: AttemptTable) {
   await getDb()
     .insertInto("attempt")
@@ -141,4 +129,16 @@ export async function upsertPuzzle(data: PuzzleTable) {
 
 export async function deletePuzzle(uri: string) {
   await getDb().deleteFrom("puzzle").where("uri", "=", uri).execute();
+}
+
+export async function upsertErratum(data: ErratumTable) {
+  await getDb()
+    .insertInto("erratum")
+    .values(data)
+    .onConflict((oc) => oc.column("uri").doUpdateSet(data))
+    .execute();
+}
+
+export async function deleteErratum(uri: string) {
+  await getDb().deleteFrom("erratum").where("uri", "=", uri).execute();
 }

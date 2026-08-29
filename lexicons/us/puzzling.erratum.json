@@ -1,0 +1,51 @@
+{
+  "lexicon": 1,
+  "id": "us.puzzling.erratum",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "description": "A correction to a published puzzle -- a revised body, revised clue(s)/answer(s), or just author commentary with neither. Kept as its own record rather than a silent edit to the puzzle, since revisions typically need distinct presentation to solvers who already started (and potentially a notification), not just a quietly-updated puzzle.",
+      "record": {
+        "type": "object",
+        "required": ["puzzle", "authorDid", "text", "createdAt"],
+        "properties": {
+          "puzzle": {
+            "type": "ref",
+            "ref": "com.atproto.repo.strongRef",
+            "description": "The puzzle this erratum corrects."
+          },
+          "authorDid": {
+            "type": "string",
+            "format": "did",
+            "description": "Usually the puzzle's own author. Kept explicit rather than assumed, since a future structured event could have judges or administrators issuing corrections who aren't the original author."
+          },
+          "text": {
+            "type": "string",
+            "maxGraphemes": 2000,
+            "maxLength": 20000,
+            "description": "Explanation of what changed and why, shown to solvers."
+          },
+          "revisedBody": {
+            "type": "string",
+            "maxGraphemes": 10000,
+            "maxLength": 100000,
+            "description": "Replaces the puzzle's body wholesale, when the correction changes the puzzle itself (e.g. a new grid) rather than just clue text. Omitted if this erratum doesn't touch the body."
+          },
+          "revisedClues": {
+            "type": "array",
+            "description": "The corrected clue(s), matched to the puzzle's own clues by id. Omitted if this erratum doesn't change any clue.",
+            "items": {
+              "type": "ref",
+              "ref": "us.puzzling.puzzle#clue"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
