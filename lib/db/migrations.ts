@@ -127,22 +127,6 @@ const migrations: Record<string, Migration> = {
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
-<<<<<<< HEAD
-=======
-
-      await db.schema
-        .createTable("erratum")
-        .addColumn("uri", "text", (col) => col.primaryKey())
-        .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("puzzleUri", "text", (col) => col.notNull())
-        .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("text", "text", (col) => col.notNull())
-        .addColumn("revisedBody", "text")
-        .addColumn("revisedCluesJson", "text")
-        .addColumn("createdAt", "text", (col) => col.notNull())
-        .addColumn("indexedAt", "text", (col) => col.notNull())
-        .execute();
->>>>>>> 5ef5dfdfb02b1849f11604493ed4d1ca2e5bc05a
       await db.schema
         .createIndex("erratum_puzzle_idx")
         .on("erratum")
@@ -154,22 +138,6 @@ const migrations: Record<string, Migration> = {
       await db.schema.dropTable("puzzle").execute();
       await db.schema.dropTable("comment").execute();
       await db.schema.dropTable("attempt").execute();
-        .addColumn("body", "text", (col) => col.notNull())
-        .addColumn("createdAt", "text", (col) => col.notNull())
-        .addColumn("publishAt", "text")
-        .addColumn("indexedAt", "text", (col) => col.notNull())
-        .execute();
-
-      await db.schema
-        .createTable("erratum")
-        .addColumn("uri", "text", (col) => col.primaryKey())
-        .addColumn("cid", "text", (col) => col.notNull())
-        .addColumn("puzzleUri", "text", (col) => col.notNull())
-        .addColumn("authorDid", "text", (col) => col.notNull())
-        .addColumn("text", "text", (col) => col.notNull())
-        .addColumn("revisedBody", "text")
-        .addColumn("revisedCluesJson", "text")
-      await db.schema.dropTable("erratum").execute();
       await db.schema.dropTable("invite").execute();
       await db.schema.dropTable("member").execute();
       await db.schema.dropTable("team").execute();
