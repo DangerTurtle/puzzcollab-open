@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
           body: record.body,
           cluesJson: serializeClues(record.clues),
           createdAt: record.createdAt,
+          publishAt: record.publishAt ?? null,
           indexedAt,
         });
         break;
