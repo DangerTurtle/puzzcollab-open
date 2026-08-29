@@ -69,3 +69,7 @@ next-env.d.ts
 **/.idea/**/*.iml
 **/.idea/**/contentModel.xml
 **/.idea/**/modules.xml
+
+# Claude Code
+.claude/settings.local.json
+.claude/worktrees/

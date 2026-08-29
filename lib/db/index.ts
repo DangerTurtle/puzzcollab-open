@@ -121,3 +121,15 @@ export interface ErratumTable {
   createdAt: string;
   indexedAt: string;
 }
+
+export interface ErratumTable {
+  uri: string;
+  cid: string;
+  puzzleUri: string;
+  authorDid: string;
+  text: string;
+  revisedBody: string | null;
+  revisedCluesJson: string | null;
+  createdAt: string;
+  indexedAt: string;
+}
