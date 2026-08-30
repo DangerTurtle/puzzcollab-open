@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getAtpClient } from "@/lib/atproto/client";
-import { decryptAnswerKey } from "@/lib/crypto/answerBlock";
+import { decryptAnswerKeySafe } from "@/lib/crypto/answerBlock";
 import * as us from "@/lib/lexicons/us";
 import { PuzzleForm, type PuzzleFormInitialValues } from "@/components/PuzzleForm";
 
@@ -32,7 +32,7 @@ export default async function EditPuzzlePage({
     body: record.value.body,
     publishAt: record.value.publishAt ?? "",
     clues: record.value.clues.map((clue) => {
-      const answerKey = decryptAnswerKey(clue.answerBlock);
+      const answerKey = decryptAnswerKeySafe(clue.answerBlock);
       return {
         id: clue.id,
         name: clue.name,
