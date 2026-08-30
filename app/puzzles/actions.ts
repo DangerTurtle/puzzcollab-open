@@ -43,8 +43,12 @@ export async function savePuzzle(
   if (!input.title.trim()) return { ok: false, error: "Title is required." };
   if (!input.body.trim())
     return { ok: false, error: "Puzzle body is required." };
-  if (input.clues.length === 0)
-    return { ok: false, error: "Add at least one clue." };
+  if (input.status !== "draft" && input.clues.length === 0) {
+    return {
+      ok: false,
+      error: "Add at least one clue before publishing or scheduling.",
+    };
+  }
   if (input.status === "scheduled" && !input.scheduledAt) {
     return { ok: false, error: "Pick a date to schedule this puzzle for." };
   }
@@ -93,6 +97,26 @@ export async function savePuzzle(
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Failed to save puzzle.",
+    };
+  }
+
+  redirect("/puzzles");
+}
+
+export async function deletePuzzle(rkey: string): Promise<SavePuzzleResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Not signed in." };
+
+  const client = getAtpClient(session);
+  try {
+    await client.delete(us.puzzling.puzzle.main, {
+      repo: session.did,
+      rkey,
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to delete puzzle.",
     };
   }
 

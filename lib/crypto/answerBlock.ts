@@ -55,3 +55,19 @@ export function decryptAnswerKey(answerBlock: Uint8Array): AnswerKey {
   ]);
   return JSON.parse(plaintext.toString("utf8"));
 }
+
+export const CORRUPTED_ANSWER_SENTINEL = "<<ANSWER DATA CORRUPTED>>";
+
+// A bad answerBlock (wrong/rotated ANSWER_KEY_SECRET, bit rot, a record
+// written by something else entirely) throws out of decryptAnswerKey.
+// That's correct for anything that needs the real answer, but the puzzle
+// editor just needs to render *a* value for that clue instead of taking the
+// whole page down -- surfacing the sentinel in the editable field lets the
+// author notice and retype it.
+export function decryptAnswerKeySafe(answerBlock: Uint8Array): AnswerKey {
+  try {
+    return decryptAnswerKey(answerBlock);
+  } catch {
+    return { canonical: CORRUPTED_ANSWER_SENTINEL, accepted: [] };
+  }
+}

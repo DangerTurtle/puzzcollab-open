@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { savePuzzle, type ClueInput, type PuzzleFormInput } from "@/app/puzzles/actions";
+import {
+  savePuzzle,
+  deletePuzzle,
+  type ClueInput,
+  type PuzzleFormInput,
+} from "@/app/puzzles/actions";
 import {
   defaultScheduledAt,
   statusFromPublishAt,
@@ -58,11 +63,10 @@ export function PuzzleForm({
       : toDatetimeLocal(defaultScheduledAt().toISOString()),
   );
 
-  const [clues, setClues] = useState<ClueInput[]>(
-    initialValues?.clues?.length ? initialValues.clues : [newClue(0)],
-  );
+  const [clues, setClues] = useState<ClueInput[]>(initialValues?.clues ?? []);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   function updateClue(index: number, patch: Partial<ClueInput>) {
     setClues((cs) => cs.map((c, i) => (i === index ? { ...c, ...patch } : c)));
@@ -118,6 +122,22 @@ export function PuzzleForm({
       const result = await savePuzzle(input);
       if (!result.ok) {
         setError(result.error ?? "Failed to save puzzle.");
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!initialValues?.rkey) return;
+    const confirmed = window.confirm(
+      `Delete "${title || "this puzzle"}"? This action cannot be undone -- the puzzle and all of its clues will be permanently deleted.`,
+    );
+    if (!confirmed) return;
+
+    setError(null);
+    startDeleteTransition(async () => {
+      const result = await deletePuzzle(initialValues.rkey!);
+      if (!result.ok) {
+        setError(result.error ?? "Failed to delete puzzle.");
       }
     });
   }
@@ -191,6 +211,16 @@ export function PuzzleForm({
                 disabled={status !== "scheduled"}
                 onChange={(e) => setScheduledAt(e.target.value)}
               />
+              {isEdit && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="stamp red text-xs ml-auto"
+                >
+                  {isDeleting ? "Deleting..." : "Delete Puzzle"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -203,6 +233,11 @@ export function PuzzleForm({
             </button>
           </div>
           <div className="space-y-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto lg:pr-2">
+            {clues.length === 0 && (
+              <p className="text-ink-soft italic text-sm">
+                No clues yet -- add one whenever you&apos;re ready.
+              </p>
+            )}
             {clues.map((clue, i) => (
               <div key={clue.id} className="card">
                 <div className="flex items-start justify-between gap-4 mb-4">
@@ -216,15 +251,13 @@ export function PuzzleForm({
                       required
                     />
                   </div>
-                  {clues.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeClue(i)}
-                      className="text-sm text-stamp hover:underline mt-6"
-                    >
-                      Remove
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeClue(i)}
+                    className="text-sm text-stamp hover:underline mt-6"
+                  >
+                    Remove
+                  </button>
                 </div>
 
                 <label className="field-label">Prompt</label>
