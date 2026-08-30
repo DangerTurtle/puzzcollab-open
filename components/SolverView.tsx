@@ -86,28 +86,23 @@ export function SolverView({
         <div className="space-y-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto lg:pr-2">
           {clues.map((clue) => (
             <div key={clue.id} className="card">
-              <div className="font-display font-600 italic text-lg mb-2">
-                {clue.name}
-              </div>
               {clue.prompt && (
-                <p className="text-sm text-ink-soft mb-3">{clue.prompt}</p>
+                <p className="text-sm text-ink-soft mb-2">{clue.prompt}</p>
               )}
 
-              {clue.solved ? (
-                <div>
-                  <div className="field-input bg-paper-card font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="font-display font-600 italic text-lg whitespace-nowrap">
+                  {clue.name}
+                </span>
+
+                {clue.solved ? (
+                  <div className="field-input bg-paper-card font-semibold flex-1">
                     {clue.solved.canonical}
                   </div>
-                  <p className="text-xs text-pencil mt-1">
-                    Solved by {clue.solved.solverHandle} at{" "}
-                    {new Date(clue.solved.solvedAt).toLocaleString()}
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex gap-2">
+                ) : (
+                  <>
                     <input
-                      className="field-input"
+                      className="field-input flex-1"
                       value={drafts[clue.id] ?? ""}
                       disabled={isAuthor}
                       onChange={(e) =>
@@ -130,11 +125,18 @@ export function SolverView({
                         {pendingClueId === clue.id ? "..." : "Submit"}
                       </button>
                     )}
-                  </div>
-                  {feedback[clue.id] && (
-                    <p className="text-xs text-stamp mt-1">{feedback[clue.id]}</p>
-                  )}
-                </div>
+                  </>
+                )}
+              </div>
+
+              {clue.solved && (
+                <p className="text-xs text-pencil mt-1">
+                  Solved by {clue.solved.solverHandle} at{" "}
+                  {new Date(clue.solved.solvedAt).toLocaleString()}
+                </p>
+              )}
+              {feedback[clue.id] && (
+                <p className="text-xs text-stamp mt-1">{feedback[clue.id]}</p>
               )}
             </div>
           ))}
