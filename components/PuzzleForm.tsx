@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import {
   savePuzzle,
   deletePuzzle,
+  type AlternateAnswer,
   type ClueInput,
   type PuzzleFormInput,
 } from "@/app/puzzles/actions";
@@ -19,8 +20,12 @@ function newClue(index: number): ClueInput {
     name: String(index + 1),
     prompt: "",
     canonical: "",
-    accepted: [],
+    alternates: [],
   };
+}
+
+function newAlternate(): AlternateAnswer {
+  return { match: "", mode: "hint", hint: "" };
 }
 
 // datetime-local wants "YYYY-MM-DDTHH:mm"; puzzle records store full ISO.
@@ -80,26 +85,37 @@ export function PuzzleForm({
     setClues((cs) => cs.filter((_, i) => i !== index));
   }
 
-  function addAccepted(clueIndex: number) {
+  function handleCanonicalKeyDown(
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) {
+    if (e.key !== "Enter") return;
+    const isLastClue = index === clues.length - 1;
+    if (!isLastClue || !clues[index].canonical.trim()) return;
+    e.preventDefault();
+    addClue();
+  }
+
+  function addAlternate(clueIndex: number) {
     updateClue(clueIndex, {
-      accepted: [...clues[clueIndex].accepted, { match: "", hint: "" }],
+      alternates: [...clues[clueIndex].alternates, newAlternate()],
     });
   }
 
-  function updateAccepted(
+  function updateAlternate(
     clueIndex: number,
-    acceptedIndex: number,
-    patch: Partial<{ match: string; hint: string }>,
+    altIndex: number,
+    patch: Partial<AlternateAnswer>,
   ) {
-    const accepted = clues[clueIndex].accepted.map((a, i) =>
-      i === acceptedIndex ? { ...a, ...patch } : a,
+    const alternates = clues[clueIndex].alternates.map((a, i) =>
+      i === altIndex ? { ...a, ...patch } : a,
     );
-    updateClue(clueIndex, { accepted });
+    updateClue(clueIndex, { alternates });
   }
 
-  function removeAccepted(clueIndex: number, acceptedIndex: number) {
+  function removeAlternate(clueIndex: number, altIndex: number) {
     updateClue(clueIndex, {
-      accepted: clues[clueIndex].accepted.filter((_, i) => i !== acceptedIndex),
+      alternates: clues[clueIndex].alternates.filter((_, i) => i !== altIndex),
     });
   }
 
@@ -226,12 +242,7 @@ export function PuzzleForm({
         </div>
 
         <div className="lg:sticky lg:top-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="section-label">Clues</div>
-            <button type="button" onClick={addClue} className="stamp teal text-xs">
-              + Add Clue
-            </button>
-          </div>
+          <div className="section-label mb-3">Clues</div>
           <div className="space-y-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto lg:pr-2">
             {clues.length === 0 && (
               <p className="text-ink-soft italic text-sm">
@@ -260,13 +271,17 @@ export function PuzzleForm({
                   </button>
                 </div>
 
-                <label className="field-label">Prompt</label>
+                <label className="field-label">
+                  Prompt{" "}
+                  <span className="normal-case text-pencil">
+                    (optional -- leave blank if the prompt is in the puzzle body itself)
+                  </span>
+                </label>
                 <textarea
                   className="field-input mb-4"
                   rows={2}
                   value={clue.prompt}
                   onChange={(e) => updateClue(i, { prompt: e.target.value })}
-                  required
                 />
 
                 <label className="field-label">Canonical answer</label>
@@ -274,32 +289,52 @@ export function PuzzleForm({
                   className="field-input mb-4"
                   value={clue.canonical}
                   onChange={(e) => updateClue(i, { canonical: e.target.value })}
+                  onKeyDown={(e) => handleCanonicalKeyDown(e, i)}
                   required
                 />
 
-                <label className="field-label">Also accept</label>
+                <label className="field-label">Alternate answers</label>
                 <div className="space-y-2 mb-2">
-                  {clue.accepted.map((a, ai) => (
-                    <div key={ai} className="flex gap-2">
+                  {clue.alternates.map((a, ai) => (
+                    <div key={ai} className="flex items-center gap-2 flex-wrap">
                       <input
-                        className="field-input"
+                        className="field-input flex-1 min-w-[140px]"
                         value={a.match}
                         onChange={(e) =>
-                          updateAccepted(i, ai, { match: e.target.value })
+                          updateAlternate(i, ai, { match: e.target.value })
                         }
                         placeholder="alternate answer"
                       />
+                      <label className="flex items-center gap-1 text-xs whitespace-nowrap">
+                        <input
+                          type="radio"
+                          name={`alt-mode-${clue.id}-${ai}`}
+                          checked={a.mode === "accept"}
+                          onChange={() => updateAlternate(i, ai, { mode: "accept" })}
+                        />
+                        Accept
+                      </label>
+                      <label className="flex items-center gap-1 text-xs whitespace-nowrap">
+                        <input
+                          type="radio"
+                          name={`alt-mode-${clue.id}-${ai}`}
+                          checked={a.mode === "hint"}
+                          onChange={() => updateAlternate(i, ai, { mode: "hint" })}
+                        />
+                        Hint
+                      </label>
                       <input
-                        className="field-input"
-                        value={a.hint ?? ""}
+                        className="field-input flex-1 min-w-[140px]"
+                        value={a.hint}
+                        disabled={a.mode !== "hint"}
                         onChange={(e) =>
-                          updateAccepted(i, ai, { hint: e.target.value })
+                          updateAlternate(i, ai, { hint: e.target.value })
                         }
-                        placeholder="hint shown for this alternate (optional)"
+                        placeholder="hint shown"
                       />
                       <button
                         type="button"
-                        onClick={() => removeAccepted(i, ai)}
+                        onClick={() => removeAlternate(i, ai)}
                         className="text-stamp text-sm px-2"
                         aria-label="Remove alternate"
                       >
@@ -310,13 +345,16 @@ export function PuzzleForm({
                 </div>
                 <button
                   type="button"
-                  onClick={() => addAccepted(i)}
+                  onClick={() => addAlternate(i)}
                   className="text-sm text-teal hover:underline"
                 >
                   + Add alternate answer
                 </button>
               </div>
             ))}
+            <button type="button" onClick={addClue} className="stamp teal text-xs">
+              + Add Clue
+            </button>
           </div>
         </div>
       </div>
