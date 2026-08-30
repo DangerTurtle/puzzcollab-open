@@ -17,7 +17,7 @@ import { getDb } from "../db";
 // update/delete on that collection); add more here as more record types
 // grow a write path, since granting access to a collection nobody writes to
 // yet just adds risk for nothing.
-export const SCOPE = "atproto repo:us.puzzling.puzzle";
+export const SCOPE = "atproto repo:us.puzzling.puzzle repo:us.puzzling.attempt";
 
 let client: NodeOAuthClient | null = null;
 

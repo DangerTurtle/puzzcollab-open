@@ -41,19 +41,27 @@ export default async function PuzzlesPage() {
             const clueCount = r.valid ? r.value.clues.length : 0;
             const publishAt = r.valid ? r.value.publishAt : undefined;
             return (
-              <Link key={r.uri} href={`/puzzles/${rkey}/edit`} className="card block hover:-translate-y-0.5 transition-transform">
-                <h3 className="font-display font-600 italic text-xl mb-2">
-                  {title}
-                </h3>
-                <p className="text-sm text-ink-soft">
-                  {clueCount} {clueCount === 1 ? "clue" : "clues"}
-                </p>
-                {publishAt && (
-                  <p className="text-sm text-ink-soft mt-1">
-                    Publishes {new Date(publishAt).toLocaleString()}
+              <div key={r.uri} className="card">
+                <Link href={`/puzzles/${rkey}/edit`} className="block hover:-translate-y-0.5 transition-transform">
+                  <h3 className="font-display font-600 italic text-xl mb-2">
+                    {title}
+                  </h3>
+                  <p className="text-sm text-ink-soft">
+                    {clueCount} {clueCount === 1 ? "clue" : "clues"}
                   </p>
-                )}
-              </Link>
+                  {publishAt && (
+                    <p className="text-sm text-ink-soft mt-1">
+                      Publishes {new Date(publishAt).toLocaleString()}
+                    </p>
+                  )}
+                </Link>
+                <Link
+                  href={`/solve/${session.did}/${rkey}`}
+                  className="text-sm text-teal hover:underline mt-3 inline-block"
+                >
+                  Open solver view &rarr;
+                </Link>
+              </div>
             );
           })}
         </div>
