@@ -11,7 +11,13 @@ import type {
 } from "@atproto/oauth-client-node";
 import { getDb } from "../db";
 
-export const SCOPE = "atproto repo:xyz.statusphere.status";
+// Partial NSID wildcards (e.g. "repo:us.puzzling.*") aren't valid scope
+// syntax -- see https://atproto.com/specs/permission. Each collection the
+// app writes to needs its own "repo:<nsid>" token (bare = full create/
+// update/delete on that collection); add more here as more record types
+// grow a write path, since granting access to a collection nobody writes to
+// yet just adds risk for nothing.
+export const SCOPE = "atproto repo:us.puzzling.puzzle";
 
 let client: NodeOAuthClient | null = null;
 
@@ -22,7 +28,7 @@ function getClientMetadata(): OAuthClientMetadataInput {
   if (PUBLIC_URL) {
     return {
       client_id: `${PUBLIC_URL}/oauth-client-metadata.json`,
-      client_name: "OAuth Tutorial",
+      client_name: "whats.puzzling.us",
       client_uri: PUBLIC_URL,
       redirect_uris: [`${PUBLIC_URL}/oauth/callback`],
       grant_types: ["authorization_code", "refresh_token"],

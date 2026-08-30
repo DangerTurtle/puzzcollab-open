@@ -9,8 +9,7 @@ import {
   PuzzleTable,
   ErratumTable,
 } from ".";
-import { getHandle } from "@atproto/common-web";
-import { getTap } from "@/lib/tap";
+import { resolveHandle } from "@/lib/atproto/identity";
 
 export async function getAccountHandle(did: string): Promise<string | null> {
   const db = getDb();
@@ -21,14 +20,10 @@ export async function getAccountHandle(did: string): Promise<string | null> {
     .where("did", "=", did)
     .executeTakeFirst();
   if (account) return account.handle;
-  // otherwise we'll resolve the accounts DID through Tap which provides identity caching
-  try {
-    const didDoc = await getTap().resolveDid(did);
-    if (!didDoc) return null;
-    return getHandle(didDoc) ?? null;
-  } catch {
-    return null;
-  }
+  // otherwise resolve the DID directly (PLC directory / did:web) -- doesn't
+  // depend on Tap being up, which matters since puzzle authoring never needs
+  // Tap at all.
+  return resolveHandle(did);
 }
 
 export async function upsertAccount(data: AccountTable) {
