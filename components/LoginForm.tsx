@@ -36,27 +36,28 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          Handle
+        <label className="field-label" htmlFor="handle">
+          Bluesky handle
         </label>
         <input
+          id="handle"
           type="text"
           value={handle}
           onChange={(e) => setHandle(e.target.value)}
           placeholder="alice.bsky.social"
-          className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+          className="field-input"
           disabled={loading}
         />
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && <p className="text-stamp text-sm">{error}</p>}
 
       <button
         type="submit"
         disabled={loading || !handle}
-        className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="stamp red w-full justify-center"
       >
-        {loading ? "Logging in..." : "Login to the Atmosphere"}
+        {loading ? "Signing in..." : "Sign In"}
       </button>
     </form>
   );

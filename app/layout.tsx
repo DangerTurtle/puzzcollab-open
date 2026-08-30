@@ -1,20 +1,50 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Special_Elite,
+  Caveat,
+  Courier_Prime,
+  PT_Serif,
+  Bodoni_Moda,
+} from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const specialElite = Special_Elite({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-special-elite",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const caveat = Caveat({
+  weight: ["600", "700"],
   subsets: ["latin"],
+  variable: "--font-caveat",
+});
+
+const courierPrime = Courier_Prime({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-courier-prime",
+});
+
+const ptSerif = PT_Serif({
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-pt-serif",
+});
+
+const bodoniModa = Bodoni_Moda({
+  weight: ["500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-bodoni-moda",
 });
 
 export const metadata: Metadata = {
-  title: "Statusphere",
-  description: "Your status in the Atmosphere",
+  title: "whats.puzzling.us",
+  description: "Puzzle authoring for whats.puzzling.us",
 };
 
 export default function RootLayout({
@@ -25,9 +55,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${specialElite.variable} ${caveat.variable} ${courierPrime.variable} ${ptSerif.variable} ${bodoniModa.variable} antialiased flex flex-col min-h-screen`}
       >
-        {children}
+        <Header />
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   );

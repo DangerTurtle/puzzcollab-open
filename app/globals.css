@@ -1,26 +1,161 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #ede4d3;
+  --paper-card: #e4d8be;
+  --ink: #23201b;
+  --ink-soft: #4a443b;
+  --stamp: #a73b2c;
+  --mustard: #ce9a2e;
+  --mustard-ink: #8a6215;
+  --teal: #2c6a5e;
+  --pencil: #8c8577;
+  --rule: rgba(35, 32, 27, 0.18);
+  --pen-blue: #2c4870;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-card: var(--paper-card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-stamp: var(--stamp);
+  --color-mustard: var(--mustard);
+  --color-teal: var(--teal);
+  --color-pencil: var(--pencil);
+  --color-rule: var(--rule);
+  --color-pen-blue: var(--pen-blue);
+  --font-serif: var(--font-pt-serif), serif;
+  --font-display: var(--font-bodoni-moda), serif;
+  --font-mono: var(--font-courier-prime), monospace;
+  --font-elite: var(--font-special-elite), cursive;
+  --font-hand: var(--font-caveat), cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(35, 32, 27, 0.035) 0px,
+      rgba(35, 32, 27, 0.035) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(35, 32, 27, 0.035) 0px,
+      rgba(35, 32, 27, 0.035) 1px,
+      transparent 1px,
+      transparent 28px
+    ),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  line-height: 1.55;
+}
+
+/* ---------- shared design-system pieces ---------- */
+
+.site-footer {
+  border-top: 1.5px dashed var(--rule);
+  padding: 36px 0 60px;
+  color: var(--pencil);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+
+.card {
+  border: 2px solid var(--ink);
+  background: var(--paper-card);
+  padding: 20px;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 2.5px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  background: none;
+  cursor: pointer;
+}
+.stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.55;
+}
+.stamp:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.stamp.red {
+  color: var(--stamp);
+}
+.stamp.teal {
+  color: var(--teal);
+}
+.stamp.mustard {
+  color: var(--mustard-ink);
+}
+
+.cutline {
+  margin: 34px 0;
+  border: none;
+  border-top: 2px dashed var(--ink-soft);
+  position: relative;
+}
+.cutline::before {
+  content: "✂";
+  position: absolute;
+  left: -4px;
+  top: -13px;
+  background: var(--paper);
+  padding: 0 6px;
+  color: var(--ink-soft);
+}
+
+.field-input {
+  width: 100%;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 10px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+}
+.field-input:focus {
+  outline: 2px solid var(--pen-blue);
+  outline-offset: 1px;
+}
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pencil);
+  margin-bottom: 6px;
 }
