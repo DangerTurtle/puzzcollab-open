@@ -4,16 +4,28 @@ import { redirect } from "next/navigation";
 import { currentDatetimeString, normalizeDatetime } from "@atproto/syntax";
 import { getSession } from "@/lib/auth/session";
 import { getAtpClient } from "@/lib/atproto/client";
-import { encryptAnswerKey, type AnswerMatch } from "@/lib/crypto/answerBlock";
+import { encryptAnswerKey } from "@/lib/crypto/answerBlock";
 import { publishAtFromStatus, type PuzzleStatus } from "@/lib/puzzles/status";
 import * as us from "@/lib/lexicons/us";
+
+// An alternate answer either counts as a solve (mode "accept" -- an
+// alternate acceptable form of the canonical answer) or doesn't (mode
+// "hint" -- shown to a solver who enters it, but the puzzle isn't solved
+// until they enter the canonical answer or an "accept" alternate). The hint
+// text box is only meaningful -- and only saved -- when mode is "hint".
+export interface AlternateAnswer {
+  match: string;
+  mode: "accept" | "hint";
+  hint: string;
+}
 
 export interface ClueInput {
   id: string;
   name: string;
+  /** Optional -- the prompt often lives in the puzzle body itself, and the clue is just where the answer goes. */
   prompt: string;
   canonical: string;
-  accepted: AnswerMatch[];
+  alternates: AlternateAnswer[];
 }
 
 export interface PuzzleFormInput {
@@ -53,10 +65,10 @@ export async function savePuzzle(
     return { ok: false, error: "Pick a date to schedule this puzzle for." };
   }
   for (const clue of input.clues) {
-    if (!clue.name.trim() || !clue.prompt.trim() || !clue.canonical.trim()) {
+    if (!clue.name.trim() || !clue.canonical.trim()) {
       return {
         ok: false,
-        error: "Every clue needs a name, prompt, and answer.",
+        error: "Every clue needs a name and an answer.",
       };
     }
   }
@@ -67,7 +79,14 @@ export async function savePuzzle(
     prompt: clue.prompt,
     answerBlock: encryptAnswerKey({
       canonical: clue.canonical,
-      accepted: clue.accepted.filter((a) => a.match.trim()),
+      accepted: clue.alternates
+        .filter((a) => a.match.trim())
+        .map((a) => ({
+          match: a.match,
+          ...(a.mode === "hint" && a.hint.trim()
+            ? { hint: a.hint.trim() }
+            : {}),
+        })),
     }),
   }));
 

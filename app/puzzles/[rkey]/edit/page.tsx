@@ -38,7 +38,11 @@ export default async function EditPuzzlePage({
         name: clue.name,
         prompt: clue.prompt,
         canonical: answerKey.canonical,
-        accepted: answerKey.accepted,
+        alternates: answerKey.accepted.map((a) => ({
+          match: a.match,
+          mode: a.hint ? ("hint" as const) : ("accept" as const),
+          hint: a.hint ?? "",
+        })),
       };
     }),
   };
