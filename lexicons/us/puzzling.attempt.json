@@ -5,19 +5,19 @@
     "main": {
       "type": "record",
       "key": "tid",
-      "description": "A guess at a clue's answer. No correctness field: verdicts are computed by the AppView at render time against the puzzle's answer key, so an answer-key correction can retroactively reclassify old attempts. No author field: authorship is structural, carried by whichever account's own repo the record lives in. Scoped to the author and the puzzle: one attempt per clue per account, regardless of which team(s) the account is attempting it through.",
+      "description": "A guess at one of a puzzle's answers. No correctness field: verdicts are computed by the AppView at render time against the puzzle's answer key, so an answer-key correction can retroactively reclassify old attempts. No author field: authorship is structural, carried by whichever account's own repo the record lives in. Scoped to the author and the puzzle: one attempt per answer per account, regardless of which team(s) the account is attempting it through.",
       "record": {
         "type": "object",
-        "required": ["puzzle", "clueId", "text", "createdAt"],
+        "required": ["puzzle", "text", "createdAt"],
         "properties": {
           "puzzle": {
             "type": "ref",
             "ref": "com.atproto.repo.strongRef"
           },
-          "clueId": {
+          "answerId": {
             "type": "string",
             "maxLength": 200,
-            "description": "The opaque id of the clue, within the referenced puzzle, this attempt is answering."
+            "description": "The opaque id of the specific answer, within the referenced puzzle, this attempt is targeting. Omitted for most puzzles: submissions are checked against the whole answer pool rather than a single answer up front, so which (if any) answer matched is only known after checking. Reserved for puzzle types where a guess is inherently tied to one specific answer up front (e.g. multiple-choice) -- not used yet."
           },
           "text": {
             "type": "string",

@@ -4,8 +4,8 @@ import { useState, useTransition } from "react";
 import {
   savePuzzle,
   deletePuzzle,
-  type AlternateAnswer,
-  type ClueInput,
+  type AnswerInput,
+  type HintInput,
   type PuzzleFormInput,
 } from "@/app/puzzles/actions";
 import {
@@ -14,18 +14,17 @@ import {
   type PuzzleStatus,
 } from "@/lib/puzzles/status";
 
-function newClue(index: number): ClueInput {
+function newAnswer(index: number): AnswerInput {
   return {
     id: crypto.randomUUID(),
     name: String(index + 1),
-    prompt: "",
     canonical: "",
     alternates: [],
   };
 }
 
-function newAlternate(): AlternateAnswer {
-  return { match: "", mode: "hint", hint: "" };
+function newHint(): HintInput {
+  return { match: "", message: "" };
 }
 
 // datetime-local wants "YYYY-MM-DDTHH:mm"; puzzle records store full ISO.
@@ -36,10 +35,12 @@ function toDatetimeLocal(iso: string): string {
 export interface PuzzleFormInitialValues {
   rkey?: string;
   createdAt?: string;
+  format?: string;
   title: string;
   body: string;
   publishAt: string;
-  clues: ClueInput[];
+  answers: AnswerInput[];
+  hints: HintInput[];
 }
 
 const STATUS_LABEL: Record<PuzzleStatus, string> = {
@@ -68,21 +69,56 @@ export function PuzzleForm({
       : toDatetimeLocal(defaultScheduledAt().toISOString()),
   );
 
-  const [clues, setClues] = useState<ClueInput[]>(initialValues?.clues ?? []);
+  const [answers, setAnswers] = useState<AnswerInput[]>(
+    initialValues?.answers ?? [],
+  );
+  const [hints, setHints] = useState<HintInput[]>(initialValues?.hints ?? []);
+  const [expandedAlternates, setExpandedAlternates] = useState<Set<string>>(
+    new Set(),
+  );
+
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
 
-  function updateClue(index: number, patch: Partial<ClueInput>) {
-    setClues((cs) => cs.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  function updateAnswer(index: number, patch: Partial<AnswerInput>) {
+    setAnswers((as) => as.map((a, i) => (i === index ? { ...a, ...patch } : a)));
   }
 
-  function addClue() {
-    setClues((cs) => [...cs, newClue(cs.length)]);
+  function addAnswer() {
+    setAnswers((as) => [...as, newAnswer(as.length)]);
   }
 
-  function removeClue(index: number) {
-    setClues((cs) => cs.filter((_, i) => i !== index));
+  function removeAnswer(index: number) {
+    setAnswers((as) => as.filter((_, i) => i !== index));
+  }
+
+  function toggleAlternates(answerId: string) {
+    setExpandedAlternates((s) => {
+      const next = new Set(s);
+      if (next.has(answerId)) next.delete(answerId);
+      else next.add(answerId);
+      return next;
+    });
+  }
+
+  function addAlternate(answerIndex: number) {
+    updateAnswer(answerIndex, {
+      alternates: [...answers[answerIndex].alternates, ""],
+    });
+  }
+
+  function updateAlternate(answerIndex: number, altIndex: number, value: string) {
+    const alternates = answers[answerIndex].alternates.map((a, i) =>
+      i === altIndex ? value : a,
+    );
+    updateAnswer(answerIndex, { alternates });
+  }
+
+  function removeAlternate(answerIndex: number, altIndex: number) {
+    updateAnswer(answerIndex, {
+      alternates: answers[answerIndex].alternates.filter((_, i) => i !== altIndex),
+    });
   }
 
   function handleCanonicalKeyDown(
@@ -90,33 +126,22 @@ export function PuzzleForm({
     index: number,
   ) {
     if (e.key !== "Enter") return;
-    const isLastClue = index === clues.length - 1;
-    if (!isLastClue || !clues[index].canonical.trim()) return;
+    const isLastAnswer = index === answers.length - 1;
+    if (!isLastAnswer || !answers[index].canonical.trim()) return;
     e.preventDefault();
-    addClue();
+    addAnswer();
   }
 
-  function addAlternate(clueIndex: number) {
-    updateClue(clueIndex, {
-      alternates: [...clues[clueIndex].alternates, newAlternate()],
-    });
+  function updateHint(index: number, patch: Partial<HintInput>) {
+    setHints((hs) => hs.map((h, i) => (i === index ? { ...h, ...patch } : h)));
   }
 
-  function updateAlternate(
-    clueIndex: number,
-    altIndex: number,
-    patch: Partial<AlternateAnswer>,
-  ) {
-    const alternates = clues[clueIndex].alternates.map((a, i) =>
-      i === altIndex ? { ...a, ...patch } : a,
-    );
-    updateClue(clueIndex, { alternates });
+  function addHint() {
+    setHints((hs) => [...hs, newHint()]);
   }
 
-  function removeAlternate(clueIndex: number, altIndex: number) {
-    updateClue(clueIndex, {
-      alternates: clues[clueIndex].alternates.filter((_, i) => i !== altIndex),
-    });
+  function removeHint(index: number) {
+    setHints((hs) => hs.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -126,12 +151,14 @@ export function PuzzleForm({
     const input: PuzzleFormInput = {
       rkey: initialValues?.rkey,
       createdAt: initialValues?.createdAt,
+      format: initialValues?.format,
       title,
       body,
       status,
       scheduledAt:
         status === "scheduled" ? new Date(scheduledAt).toISOString() : undefined,
-      clues,
+      answers,
+      hints,
     };
 
     startTransition(async () => {
@@ -145,7 +172,7 @@ export function PuzzleForm({
   function handleDelete() {
     if (!initialValues?.rkey) return;
     const confirmed = window.confirm(
-      `Delete "${title || "this puzzle"}"? This action cannot be undone -- the puzzle and all of its clues will be permanently deleted.`,
+      `Delete "${title || "this puzzle"}"? This action cannot be undone -- the puzzle and all of its answers will be permanently deleted.`,
     );
     if (!confirmed) return;
 
@@ -241,120 +268,135 @@ export function PuzzleForm({
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-6">
-          <div className="section-label mb-3">Clues</div>
-          <div className="space-y-4 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto lg:pr-2">
-            {clues.length === 0 && (
-              <p className="text-ink-soft italic text-sm">
-                No clues yet -- add one whenever you&apos;re ready.
-              </p>
-            )}
-            {clues.map((clue, i) => (
-              <div key={clue.id} className="card">
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <label className="field-label">Clue name</label>
+        <div className="lg:sticky lg:top-6 space-y-6">
+          <div>
+            <div className="section-label mb-3">Answers</div>
+            <div className="space-y-3 lg:max-h-[45vh] lg:overflow-y-auto lg:pr-2">
+              {answers.length === 0 && (
+                <p className="text-ink-soft italic text-sm">
+                  No answers yet -- add one whenever you&apos;re ready.
+                </p>
+              )}
+              {answers.map((answer, i) => (
+                <div key={answer.id} className="card">
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 shrink-0">
+                      <input
+                        className="field-input text-center"
+                        value={answer.name}
+                        onChange={(e) => updateAnswer(i, { name: e.target.value })}
+                        placeholder={String(i + 1)}
+                        aria-label="Answer id"
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        className="field-input"
+                        value={answer.canonical}
+                        onChange={(e) => updateAnswer(i, { canonical: e.target.value })}
+                        onKeyDown={(e) => handleCanonicalKeyDown(e, i)}
+                        placeholder="Answer"
+                        aria-label="Answer value"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAnswer(i)}
+                      className="text-sm text-stamp hover:underline whitespace-nowrap"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleAlternates(answer.id)}
+                    className="text-xs text-teal hover:underline mt-2"
+                  >
+                    {expandedAlternates.has(answer.id) ? "▾" : "▸"} Alternate
+                    forms
+                    {answer.alternates.length > 0 ? ` (${answer.alternates.length})` : ""}
+                  </button>
+
+                  {expandedAlternates.has(answer.id) && (
+                    <div className="space-y-2 mt-2">
+                      {answer.alternates.map((alt, ai) => (
+                        <div key={ai} className="flex items-center gap-2">
+                          <input
+                            className="field-input flex-1"
+                            value={alt}
+                            onChange={(e) => updateAlternate(i, ai, e.target.value)}
+                            placeholder="alternate form"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAlternate(i, ai)}
+                            className="text-stamp text-sm px-2"
+                            aria-label="Remove alternate form"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => addAlternate(i)}
+                        className="text-sm text-teal hover:underline"
+                      >
+                        + Add alternate form
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={addAnswer} className="stamp teal text-xs">
+                + Add Answer
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div className="section-label mb-3">Hints</div>
+            <div className="space-y-2 lg:max-h-[25vh] lg:overflow-y-auto lg:pr-2">
+              {hints.length === 0 && (
+                <p className="text-ink-soft italic text-sm">No hints yet.</p>
+              )}
+              {hints.map((hint, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-32 shrink-0">
                     <input
                       className="field-input"
-                      value={clue.name}
-                      onChange={(e) => updateClue(i, { name: e.target.value })}
-                      placeholder={String(i + 1)}
-                      required
+                      value={hint.match}
+                      onChange={(e) => updateHint(i, { match: e.target.value })}
+                      placeholder="attempt"
+                      aria-label="Hint trigger"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      className="field-input"
+                      value={hint.message}
+                      onChange={(e) => updateHint(i, { message: e.target.value })}
+                      placeholder="message shown"
+                      aria-label="Hint message"
                     />
                   </div>
                   <button
                     type="button"
-                    onClick={() => removeClue(i)}
-                    className="text-sm text-stamp hover:underline mt-6"
+                    onClick={() => removeHint(i)}
+                    className="text-stamp text-sm px-2"
+                    aria-label="Remove hint"
                   >
-                    Remove
+                    ✕
                   </button>
                 </div>
-
-                <label className="field-label">
-                  Prompt{" "}
-                  <span className="normal-case text-pencil">
-                    (optional -- leave blank if the prompt is in the puzzle body itself)
-                  </span>
-                </label>
-                <textarea
-                  className="field-input mb-4"
-                  rows={2}
-                  value={clue.prompt}
-                  onChange={(e) => updateClue(i, { prompt: e.target.value })}
-                />
-
-                <label className="field-label">Canonical answer</label>
-                <input
-                  className="field-input mb-4"
-                  value={clue.canonical}
-                  onChange={(e) => updateClue(i, { canonical: e.target.value })}
-                  onKeyDown={(e) => handleCanonicalKeyDown(e, i)}
-                  required
-                />
-
-                <label className="field-label">Alternate answers</label>
-                <div className="space-y-2 mb-2">
-                  {clue.alternates.map((a, ai) => (
-                    <div key={ai} className="flex items-center gap-2 flex-wrap">
-                      <input
-                        className="field-input flex-1 min-w-[140px]"
-                        value={a.match}
-                        onChange={(e) =>
-                          updateAlternate(i, ai, { match: e.target.value })
-                        }
-                        placeholder="alternate answer"
-                      />
-                      <label className="flex items-center gap-1 text-xs whitespace-nowrap">
-                        <input
-                          type="radio"
-                          name={`alt-mode-${clue.id}-${ai}`}
-                          checked={a.mode === "accept"}
-                          onChange={() => updateAlternate(i, ai, { mode: "accept" })}
-                        />
-                        Accept
-                      </label>
-                      <label className="flex items-center gap-1 text-xs whitespace-nowrap">
-                        <input
-                          type="radio"
-                          name={`alt-mode-${clue.id}-${ai}`}
-                          checked={a.mode === "hint"}
-                          onChange={() => updateAlternate(i, ai, { mode: "hint" })}
-                        />
-                        Hint
-                      </label>
-                      <input
-                        className="field-input flex-1 min-w-[140px]"
-                        value={a.hint}
-                        disabled={a.mode !== "hint"}
-                        onChange={(e) =>
-                          updateAlternate(i, ai, { hint: e.target.value })
-                        }
-                        placeholder="hint shown"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeAlternate(i, ai)}
-                        className="text-stamp text-sm px-2"
-                        aria-label="Remove alternate"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => addAlternate(i)}
-                  className="text-sm text-teal hover:underline"
-                >
-                  + Add alternate answer
-                </button>
-              </div>
-            ))}
-            <button type="button" onClick={addClue} className="stamp teal text-xs">
-              + Add Clue
-            </button>
+              ))}
+              <button type="button" onClick={addHint} className="stamp mustard text-xs">
+                + Add Hint
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -8,24 +8,16 @@ import { encryptAnswerKey } from "@/lib/crypto/answerBlock";
 import { publishAtFromStatus, type PuzzleStatus } from "@/lib/puzzles/status";
 import * as us from "@/lib/lexicons/us";
 
-// An alternate answer either counts as a solve (mode "accept" -- an
-// alternate acceptable form of the canonical answer) or doesn't (mode
-// "hint" -- shown to a solver who enters it, but the puzzle isn't solved
-// until they enter the canonical answer or an "accept" alternate). The hint
-// text box is only meaningful -- and only saved -- when mode is "hint".
-export interface AlternateAnswer {
-  match: string;
-  mode: "accept" | "hint";
-  hint: string;
-}
-
-export interface ClueInput {
+export interface AnswerInput {
   id: string;
   name: string;
-  /** Optional -- the prompt often lives in the puzzle body itself, and the clue is just where the answer goes. */
-  prompt: string;
   canonical: string;
-  alternates: AlternateAnswer[];
+  alternates: string[];
+}
+
+export interface HintInput {
+  match: string;
+  message: string;
 }
 
 export interface PuzzleFormInput {
@@ -33,12 +25,15 @@ export interface PuzzleFormInput {
   rkey?: string;
   /** Preserved from the original record on edit; unset (defaults to now) on create. */
   createdAt?: string;
+  /** Preserved from the original record on edit; unset (defaults to "plain") on create -- not yet exposed as its own control. */
+  format?: string;
   title: string;
   body: string;
   status: PuzzleStatus;
   /** Required (and only meaningful) when status is "scheduled". */
   scheduledAt?: string;
-  clues: ClueInput[];
+  answers: AnswerInput[];
+  hints: HintInput[];
 }
 
 export interface SavePuzzleResult {
@@ -55,47 +50,48 @@ export async function savePuzzle(
   if (!input.title.trim()) return { ok: false, error: "Title is required." };
   if (!input.body.trim())
     return { ok: false, error: "Puzzle body is required." };
-  if (input.status !== "draft" && input.clues.length === 0) {
+  if (input.status !== "draft" && input.answers.length === 0) {
     return {
       ok: false,
-      error: "Add at least one clue before publishing or scheduling.",
+      error: "Add at least one answer before publishing or scheduling.",
     };
   }
   if (input.status === "scheduled" && !input.scheduledAt) {
     return { ok: false, error: "Pick a date to schedule this puzzle for." };
   }
-  for (const clue of input.clues) {
-    if (!clue.name.trim() || !clue.canonical.trim()) {
+  for (const answer of input.answers) {
+    if (!answer.name.trim() || !answer.canonical.trim()) {
+      return { ok: false, error: "Every answer needs an id and a value." };
+    }
+  }
+  for (const hint of input.hints) {
+    if (!hint.match.trim() || !hint.message.trim()) {
       return {
         ok: false,
-        error: "Every clue needs a name and an answer.",
+        error: "Every hint needs an attempt and a message.",
       };
     }
   }
 
-  const clues = input.clues.map((clue) => ({
-    id: clue.id,
-    name: clue.name,
-    prompt: clue.prompt,
-    answerBlock: encryptAnswerKey({
-      canonical: clue.canonical,
-      accepted: clue.alternates
-        .filter((a) => a.match.trim())
-        .map((a) => ({
-          match: a.match,
-          ...(a.mode === "hint" && a.hint.trim()
-            ? { hint: a.hint.trim() }
-            : {}),
-        })),
-    }),
-  }));
+  const answersBlock = encryptAnswerKey({
+    answers: input.answers.map((a) => ({
+      id: a.id,
+      name: a.name,
+      canonical: a.canonical,
+      alternates: a.alternates.filter((alt) => alt.trim()),
+    })),
+    hints: input.hints
+      .filter((h) => h.match.trim() && h.message.trim())
+      .map((h) => ({ match: h.match, message: h.message })),
+  });
 
   const publishAt = publishAtFromStatus(input.status, input.scheduledAt ?? null);
 
   const record = {
     title: input.title,
     body: input.body,
-    clues,
+    meta: { format: input.format ?? "plain" },
+    answers: answersBlock,
     createdAt: input.createdAt
       ? normalizeDatetime(input.createdAt)
       : currentDatetimeString(),

@@ -24,20 +24,6 @@ import * as us from "@/lib/lexicons/us";
 
 const TAP_ADMIN_PASSWORD = process.env.TAP_ADMIN_PASSWORD;
 
-// Shared by puzzle.clues and erratum.revisedClues -- both are arrays of the
-// same us.puzzling.puzzle#clue shape, and both need answerBlock flattened to
-// base64 to fit in a text column.
-function serializeClues(clues: readonly { id: string; name: string; prompt: string; answerBlock: Uint8Array }[]): string {
-  return JSON.stringify(
-    clues.map((clue) => ({
-      id: clue.id,
-      name: clue.name,
-      prompt: clue.prompt,
-      answerBlock: Buffer.from(clue.answerBlock).toString("base64"),
-    })),
-  );
-}
-
 export async function POST(request: NextRequest) {
   // Verify request is from our TAP server
   if (TAP_ADMIN_PASSWORD) {
@@ -157,7 +143,7 @@ export async function POST(request: NextRequest) {
           cid,
           authorDid: evt.did,
           puzzleUri: record.puzzle.uri,
-          clueId: record.clueId,
+          answerId: record.answerId ?? null,
           text: record.text,
           createdAt: record.createdAt,
           indexedAt,
@@ -186,7 +172,8 @@ export async function POST(request: NextRequest) {
           authorDid: evt.did,
           title: record.title,
           body: record.body,
-          cluesJson: serializeClues(record.clues),
+          metaJson: JSON.stringify(record.meta),
+          answersJson: Buffer.from(record.answers).toString("base64"),
           createdAt: record.createdAt,
           publishAt: record.publishAt ?? null,
           indexedAt,
@@ -202,7 +189,6 @@ export async function POST(request: NextRequest) {
           authorDid: record.authorDid,
           text: record.text,
           revisedBody: record.revisedBody ?? null,
-          revisedCluesJson: record.revisedClues ? serializeClues(record.revisedClues) : null,
           createdAt: record.createdAt,
           indexedAt,
         });

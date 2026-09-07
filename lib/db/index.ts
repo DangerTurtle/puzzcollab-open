@@ -81,7 +81,7 @@ export interface AttemptTable {
   cid: string;
   authorDid: string;
   puzzleUri: string;
-  clueId: string;
+  answerId: string | null;
   text: string;
   createdAt: string;
   indexedAt: string;
@@ -104,7 +104,8 @@ export interface PuzzleTable {
   authorDid: string;
   title: string;
   body: string;
-  cluesJson: string;
+  metaJson: string;
+  answersJson: string;
   createdAt: string;
   publishAt: string | null;
   indexedAt: string;
@@ -117,7 +118,6 @@ export interface ErratumTable {
   authorDid: string;
   text: string;
   revisedBody: string | null;
-  revisedCluesJson: string | null;
   createdAt: string;
   indexedAt: string;
 }

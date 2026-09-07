@@ -74,15 +74,15 @@ const migrations: Record<string, Migration> = {
         .addColumn("cid", "text", (col) => col.notNull())
         .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("puzzleUri", "text", (col) => col.notNull())
-        .addColumn("clueId", "text", (col) => col.notNull())
+        .addColumn("answerId", "text")
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();
       await db.schema
-        .createIndex("attempt_puzzle_clue_idx")
+        .createIndex("attempt_puzzle_answer_idx")
         .on("attempt")
-        .columns(["puzzleUri", "clueId"])
+        .columns(["puzzleUri", "answerId"])
         .execute();
 
       await db.schema
@@ -109,7 +109,8 @@ const migrations: Record<string, Migration> = {
         .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("title", "text", (col) => col.notNull())
         .addColumn("body", "text", (col) => col.notNull())
-        .addColumn("cluesJson", "text", (col) => col.notNull())
+        .addColumn("metaJson", "text", (col) => col.notNull())
+        .addColumn("answersJson", "text", (col) => col.notNull())
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("publishAt", "text")
         .addColumn("indexedAt", "text", (col) => col.notNull())
@@ -123,7 +124,6 @@ const migrations: Record<string, Migration> = {
         .addColumn("authorDid", "text", (col) => col.notNull())
         .addColumn("text", "text", (col) => col.notNull())
         .addColumn("revisedBody", "text")
-        .addColumn("revisedCluesJson", "text")
         .addColumn("createdAt", "text", (col) => col.notNull())
         .addColumn("indexedAt", "text", (col) => col.notNull())
         .execute();

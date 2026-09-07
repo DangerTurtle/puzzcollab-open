@@ -1,22 +1,33 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
-// answerBlock is opaque at the lexicon level (see puzzling.puzzle.json's #clue
-// def) so the AppView -- and only the AppView -- can decrypt it to check
-// attempts. AES-256-GCM with a server-held key: the key never reaches the
-// browser, so a puzzle's answerBlock stays meaningless to anyone reading the
-// public atproto record directly (which anyone can, since records are public
+// answers is opaque at the lexicon level (see puzzling.puzzle.json) so the
+// AppView -- and only the AppView -- can decrypt it to check attempts.
+// AES-256-GCM with a server-held key: the key never reaches the browser, so
+// a puzzle's answers block stays meaningless to anyone reading the public
+// atproto record directly (which anyone can, since records are public
 // regardless of team boundaries).
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
-export interface AnswerMatch {
+export interface Answer {
+  id: string;
+  name: string;
+  canonical: string;
+  alternates: string[];
+}
+
+// Not tied to a specific answer -- an arbitrary near-miss string that
+// surfaces message to the solver without counting as solved. Whatever is
+// visible about an answer before it's given (prompts, clue text) lives in
+// the puzzle body instead, not here.
+export interface Hint {
   match: string;
-  hint?: string;
+  message: string;
 }
 
 export interface AnswerKey {
-  canonical: string;
-  accepted: AnswerMatch[];
+  answers: Answer[];
+  hints: Hint[];
 }
 
 function getKey(): Buffer {
@@ -42,8 +53,8 @@ export function encryptAnswerKey(answerKey: AnswerKey): Uint8Array {
   return new Uint8Array(Buffer.concat([iv, authTag, ciphertext]));
 }
 
-export function decryptAnswerKey(answerBlock: Uint8Array): AnswerKey {
-  const buf = Buffer.from(answerBlock);
+export function decryptAnswerKey(answersBlock: Uint8Array): AnswerKey {
+  const buf = Buffer.from(answersBlock);
   const iv = buf.subarray(0, IV_LENGTH);
   const authTag = buf.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
   const ciphertext = buf.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
@@ -58,16 +69,19 @@ export function decryptAnswerKey(answerBlock: Uint8Array): AnswerKey {
 
 export const CORRUPTED_ANSWER_SENTINEL = "<<ANSWER DATA CORRUPTED>>";
 
-// A bad answerBlock (wrong/rotated ANSWER_KEY_SECRET, bit rot, a record
+// A bad answers block (wrong/rotated ANSWER_KEY_SECRET, bit rot, a record
 // written by something else entirely) throws out of decryptAnswerKey.
-// That's correct for anything that needs the real answer, but the puzzle
-// editor just needs to render *a* value for that clue instead of taking the
-// whole page down -- surfacing the sentinel in the editable field lets the
-// author notice and retype it.
-export function decryptAnswerKeySafe(answerBlock: Uint8Array): AnswerKey {
+// That's correct for anything that needs the real answers, but callers that
+// just need to render *something* instead of taking the whole page down can
+// use this instead. Falls back to an empty answer key rather than a
+// per-field sentinel now that there's one blob for the whole puzzle instead
+// of one per clue -- callers that want to surface CORRUPTED_ANSWER_SENTINEL
+// to an author should check for the empty-but-should-not-be-empty case
+// themselves.
+export function decryptAnswerKeySafe(answersBlock: Uint8Array): AnswerKey {
   try {
-    return decryptAnswerKey(answerBlock);
+    return decryptAnswerKey(answersBlock);
   } catch {
-    return { canonical: CORRUPTED_ANSWER_SENTINEL, accepted: [] };
+    return { answers: [], hints: [] };
   }
 }

@@ -38,7 +38,6 @@ export default async function PuzzlesPage() {
           {records.map((r) => {
             const rkey = new AtUri(r.uri).rkey;
             const title = r.valid ? r.value.title : "(invalid record)";
-            const clueCount = r.valid ? r.value.clues.length : 0;
             const publishAt = r.valid ? r.value.publishAt : undefined;
             return (
               <div key={r.uri} className="card">
@@ -46,9 +45,6 @@ export default async function PuzzlesPage() {
                   <h3 className="font-display font-600 italic text-xl mb-2">
                     {title}
                   </h3>
-                  <p className="text-sm text-ink-soft">
-                    {clueCount} {clueCount === 1 ? "clue" : "clues"}
-                  </p>
                   {publishAt && (
                     <p className="text-sm text-ink-soft mt-1">
                       Publishes {new Date(publishAt).toLocaleString()}
