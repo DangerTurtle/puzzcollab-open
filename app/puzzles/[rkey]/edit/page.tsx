@@ -26,26 +26,17 @@ export default async function EditPuzzlePage({
     notFound();
   }
 
+  const answerKey = decryptAnswerKeySafe(record.value.answers);
+
   const initialValues: PuzzleFormInitialValues = {
     rkey,
     createdAt: record.value.createdAt,
+    format: record.value.meta.format,
     title: record.value.title,
     body: record.value.body,
     publishAt: record.value.publishAt ?? "",
-    clues: record.value.clues.map((clue) => {
-      const answerKey = decryptAnswerKeySafe(clue.answerBlock);
-      return {
-        id: clue.id,
-        name: clue.name,
-        prompt: clue.prompt,
-        canonical: answerKey.canonical,
-        alternates: answerKey.accepted.map((a) => ({
-          match: a.match,
-          mode: a.hint ? ("hint" as const) : ("accept" as const),
-          hint: a.hint ?? "",
-        })),
-      };
-    }),
+    answers: answerKey.answers,
+    hints: answerKey.hints,
   };
 
   return (

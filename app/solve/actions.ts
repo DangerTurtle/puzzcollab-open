@@ -4,18 +4,17 @@ import { asAtIdentifierString, currentDatetimeString } from "@atproto/syntax";
 import { getSession } from "@/lib/auth/session";
 import { getAtpClient } from "@/lib/atproto/client";
 import { decryptAnswerKeySafe } from "@/lib/crypto/answerBlock";
-import { checkAnswer } from "@/lib/puzzles/verdict";
+import { checkSubmission } from "@/lib/puzzles/verdict";
 import * as us from "@/lib/lexicons/us";
 
 export interface SubmitAttemptInput {
   authorDid: string;
   rkey: string;
-  clueId: string;
   text: string;
 }
 
 export type SubmitAttemptResult =
-  | { ok: true; correct: true; canonical: string; solvedAt: string }
+  | { ok: true; correct: true; answerId: string; answerName: string; canonical: string; solvedAt: string }
   | { ok: true; correct: false; hint?: string }
   | { ok: false; error: string };
 
@@ -45,11 +44,10 @@ export async function submitAttempt(
   }
   if (!puzzle.cid) return { ok: false, error: "Couldn't load this puzzle." };
 
-  const clue = puzzle.value.clues.find((c) => c.id === input.clueId);
-  if (!clue) return { ok: false, error: "That clue no longer exists." };
-
-  const answerKey = decryptAnswerKeySafe(clue.answerBlock);
-  const verdict = checkAnswer(text, answerKey);
+  const answerKey = decryptAnswerKeySafe(puzzle.value.answers);
+  // Not targeted at a specific answer up front -- checked against the whole
+  // pool, and we only learn which (if any) answer it was after checking.
+  const verdict = checkSubmission(text, answerKey);
 
   // Log every attempt regardless of verdict -- the record has no
   // correctness field by design (see puzzling.attempt.json), since
@@ -59,7 +57,7 @@ export async function submitAttempt(
   try {
     await client.create(us.puzzling.attempt.main, {
       puzzle: { uri: puzzle.uri, cid: puzzle.cid },
-      clueId: input.clueId,
+      ...(verdict.correct ? { answerId: verdict.answer.id } : {}),
       text,
       createdAt,
     });
@@ -71,7 +69,14 @@ export async function submitAttempt(
   }
 
   if (verdict.correct) {
-    return { ok: true, correct: true, canonical: answerKey.canonical, solvedAt: createdAt };
+    return {
+      ok: true,
+      correct: true,
+      answerId: verdict.answer.id,
+      answerName: verdict.answer.name,
+      canonical: verdict.answer.canonical,
+      solvedAt: createdAt,
+    };
   }
   return { ok: true, correct: false, hint: verdict.hint };
 }

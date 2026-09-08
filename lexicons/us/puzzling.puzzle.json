@@ -5,10 +5,10 @@
     "main": {
       "type": "record",
       "key": "tid",
-      "description": "A puzzle published by a host, with one or more clues to solve.",
+      "description": "A puzzle published by a host, presented to solvers via body and checked against answers.",
       "record": {
         "type": "object",
-        "required": ["title", "body", "clues", "createdAt"],
+        "required": ["title", "body", "meta", "answers", "createdAt"],
         "properties": {
           "title": {
             "type": "string",
@@ -19,14 +19,16 @@
             "type": "string",
             "maxGraphemes": 10000,
             "maxLength": 100000,
-            "description": "The puzzle itself, as presented to solvers -- distinct from the per-clue answer-checking data in clues. Not encrypted."
+            "description": "The puzzle itself, as presented to solvers -- including anything a solver needs to see before answering (prompts, clue text, instructions). Not encrypted."
           },
-          "clues": {
-            "type": "array",
-            "items": {
-              "type": "ref",
-              "ref": "#clue"
-            }
+          "meta": {
+            "type": "ref",
+            "ref": "#meta",
+            "description": "Client-side info relevant only when actually viewing the puzzle -- not descriptive metadata like title or author, which stay their own top-level protocol fields. Not encrypted; nothing in here is secret."
+          },
+          "answers": {
+            "type": "bytes",
+            "description": "Encrypted. Decrypts to { answers: [{ id: string, name: string, canonical: string, alternates: string[] }], hints: [{ match: string, message: string }] }. Holds only answer-verification data -- anything visible to a solver before answering (prompts, clue text) belongs in body, not here. hints are not tied to a specific answer: each is an arbitrary near-miss string that surfaces a message without counting as solved. Opaque to the lexicon by design, so its internal shape can change freely without a protocol-level compatibility concern."
           },
           "createdAt": {
             "type": "string",
@@ -40,27 +42,14 @@
         }
       }
     },
-    "clue": {
+    "meta": {
       "type": "object",
-      "description": "id is opaque, assigned once at authoring time, and never changes -- attempts and comments reference it by id, so it must outlive any later edit to name, prompt, or answerBlock. name is the human-facing label (defaults to 1..n; may itself encode presentational meaning, e.g. grid position for a crossword) and can be freely re-edited by the author without affecting existing references.",
-      "required": ["id", "name", "prompt", "answerBlock"],
+      "required": ["format"],
       "properties": {
-        "id": {
+        "format": {
           "type": "string",
-          "maxLength": 200
-        },
-        "name": {
-          "type": "string",
-          "maxLength": 200
-        },
-        "prompt": {
-          "type": "string",
-          "maxGraphemes": 500,
-          "maxLength": 5000
-        },
-        "answerBlock": {
-          "type": "bytes",
-          "description": "Encrypted. Decrypts to { canonical: string, accepted: [{ match: string } | { match: string, hint: string }] }. Opaque to the lexicon by design, so its internal shape can change freely without a protocol-level compatibility concern."
+          "maxLength": 100,
+          "description": "How clients should interpret body -- e.g. which markdown flavor is in use. No fixed set of values yet."
         }
       }
     }

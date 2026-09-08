@@ -1,25 +1,36 @@
-import type { AnswerKey } from "@/lib/crypto/answerBlock";
+import type { Answer, AnswerKey } from "@/lib/crypto/answerBlock";
 
-// An attempt matching the canonical answer, or an "accept" alternate (one
-// with no hint), solves the clue. One matching a "hint" alternate doesn't --
-// it just surfaces that alternate's hint text, same as typing a near-miss.
-export type Verdict =
-  | { correct: true }
+// A submission is checked against the whole puzzle's answer pool, not one
+// answer at a time -- most puzzle types don't ask "which clue is this
+// guessing at" up front (see puzzling.attempt.json's answerId). A match
+// against an answer's canonical or one of its alternates solves that
+// answer; a match against a hint's trigger surfaces its message without
+// solving anything.
+export type PuzzleVerdict =
+  | { correct: true; answer: Answer }
   | { correct: false; hint?: string };
 
 function normalize(s: string): string {
   return s.trim().toLowerCase();
 }
 
-export function checkAnswer(attemptText: string, answerKey: AnswerKey): Verdict {
+export function checkSubmission(
+  attemptText: string,
+  answerKey: AnswerKey,
+): PuzzleVerdict {
   const normalized = normalize(attemptText);
   if (!normalized) return { correct: false };
 
-  if (normalize(answerKey.canonical) === normalized) return { correct: true };
+  for (const answer of answerKey.answers) {
+    if (normalize(answer.canonical) === normalized) return { correct: true, answer };
+    for (const alt of answer.alternates) {
+      if (normalize(alt) === normalized) return { correct: true, answer };
+    }
+  }
 
-  for (const alt of answerKey.accepted) {
-    if (normalize(alt.match) === normalized) {
-      return alt.hint ? { correct: false, hint: alt.hint } : { correct: true };
+  for (const hint of answerKey.hints) {
+    if (normalize(hint.match) === normalized) {
+      return { correct: false, hint: hint.message };
     }
   }
 
