@@ -10,7 +10,7 @@
     "migrate": "tsx scripts/migrate.ts",
     "gen-key": "node scripts/gen-key.mjs",
     "lint": "eslint",
-    "test": "node --import tsx --test \"**/*.test.ts\""
+    "test": "node scripts/run-tests.mjs"
   },
   "dependencies": {
     "@atproto/common-web": "^0.5.6",

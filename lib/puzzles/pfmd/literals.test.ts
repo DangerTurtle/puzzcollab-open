@@ -45,3 +45,44 @@ test("individual toggles apply independently", () => {
   const out = applyLiteralPreprocessing("foo_bar [baz]", toggles);
   assert.equal(out, "foo\\_bar [baz]");
 });
+
+test("a closing fence shorter than the opening one doesn't close it", () => {
+  // Regression: a 4-backtick fence containing a 3-backtick line (e.g. a
+  // markdown code sample as the *content* of the outer fence) must not be
+  // treated as closed by that shorter run.
+  const source = ["````", "```text", "foo_bar", "````"].join("\n");
+  const out = applyLiteralPreprocessing(source, PFMD_DEFAULTS);
+  assert.equal(out, source);
+});
+
+test("a fence-marker line with trailing content doesn't close the fence", () => {
+  // e.g. an info string that happens to start with the same char run --
+  // real CommonMark closing fences permit only trailing whitespace.
+  const source = ["```", "```not-actually-closing", "foo_bar", "```"].join("\n");
+  const out = applyLiteralPreprocessing(source, PFMD_DEFAULTS);
+  assert.equal(out, source);
+});
+
+test("a code span that crosses a line break is left untouched on both lines", () => {
+  // Regression: per-line code-span detection couldn't see that
+  // `foo_bar\nbaz[x]` is one unterminated span until the closing backtick
+  // on the second line, so it used to escape the underscore/bracket inside.
+  const source = "before `foo_bar\nbaz[x]` after";
+  const out = applyLiteralPreprocessing(source, PFMD_DEFAULTS);
+  assert.equal(out, "before `foo_bar\nbaz[x]` after");
+});
+
+test("a line break inside an open multiline code span isn't rewritten as a hard break", () => {
+  const source = "`foo\nbar` baz";
+  const out = applyLiteralPreprocessing(source, PFMD_DEFAULTS);
+  // Not "foo  \nbar" -- the break is literal code-span content, not prose.
+  assert.equal(out, "`foo\nbar` baz");
+});
+
+test("CRLF blank lines are recognized as paragraph boundaries", () => {
+  // Regression: splitting only on "\n" left a trailing "\r" on the blank
+  // line, so it read as non-blank and got a hard-break suffix appended,
+  // merging what should be two separate paragraphs.
+  const out = applyLiteralPreprocessing("para one\r\n\r\npara two", PFMD_DEFAULTS);
+  assert.equal(out, "para one\n\npara two");
+});

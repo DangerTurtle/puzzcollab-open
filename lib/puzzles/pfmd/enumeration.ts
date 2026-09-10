@@ -17,6 +17,14 @@ export interface ParsedEnumeration {
 const HIGHLIGHT_RE = /@([\d,]+)$/;
 const WORD_COUNT_RE = /;(\d+)$/;
 
+// Enumeration digits come straight from an atproto record -- an arbitrary
+// external client can write one, not just our own authoring UI -- so a
+// numeric run isn't bounded by anything but this constant. Without a cap, a
+// single absurd blank-count (or a many-hundred-digit number, which Number()
+// happily turns into Infinity) would spin the token-allocation loop below
+// forever. No real puzzle needs anywhere near this many blanks in one word.
+const MAX_BLANK_COUNT = 200;
+
 /**
  * Parses PFMD's IPUZ-derived enumeration grammar -- see
  * docs/puzzle-flavored-markdown.md. Never throws: returns null on
@@ -104,6 +112,11 @@ function tokenizeWord(word: string): EnumerationToken[] | null {
       const n = Number(word.slice(i, j));
       if (n === 0) {
         tokens.push({ kind: "blank", unspecified: true });
+      } else if (n > MAX_BLANK_COUNT) {
+        // Treat as malformed rather than silently clamping -- see
+        // MAX_BLANK_COUNT above. The caller (parseEnumeration) surfaces this
+        // as a null return, same as any other unparseable word.
+        return null;
       } else {
         for (let k = 0; k < n; k++) tokens.push({ kind: "blank" });
       }

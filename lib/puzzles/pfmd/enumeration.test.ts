@@ -62,6 +62,18 @@ test("a dangling escape character is malformed", () => {
   assert.equal(parseEnumeration("5\\"), null);
 });
 
+test("an absurdly large blank count is rejected rather than allocated", () => {
+  // Regression: this used to run an unbounded token-allocation loop --
+  // an atproto record can carry any digit string an external client
+  // wants, so this has to be treated as malformed, not clamped or trusted.
+  assert.equal(parseEnumeration("999999999999999999999999"), null);
+});
+
+test("a blank count at the cap still parses; one past it does not", () => {
+  assert.equal(parseEnumeration("200")?.words[0].length, 200);
+  assert.equal(parseEnumeration("201"), null);
+});
+
 test("an @ suffix with no valid (positive) indices is malformed", () => {
   assert.equal(parseEnumeration("5@0"), null);
 });
